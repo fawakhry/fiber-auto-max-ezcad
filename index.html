@@ -2,202 +2,165 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#111417">
-  <title>Fiber Auto Max V4.1 - EZCAD 30W Portrait Clean Cut</title>
-  <link rel="stylesheet" href="styles.css?v=4.1.0">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#07110e">
+  <title>مطبعجي فايبر ليزر | تجهيز الصور للحفر</title>
+  <link rel="stylesheet" href="styles.css?v=5.0.0">
   <script defer src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
+  <script defer src="app.js?v=5.0.0"></script>
 </head>
 <body>
   <header class="topbar">
-    <div class="brand-mark" aria-hidden="true">F4.1</div>
-    <div class="brand-copy">
-      <p>EZCAD 30W PORTRAIT ENGINE</p>
-      <h1>Fiber Auto Max <span>V4.1</span></h1>
-    </div>
-    <div id="modelBadge" class="model-badge" data-state="idle">
-      <i></i><span>الموديل جاهز للتحميل</span>
+    <a class="brand" href="#" data-home>
+      <span class="brand-gem">م</span>
+      <span><b>مطبعجي</b><small>فايبر ليزر</small></span>
+    </a>
+    <div class="top-pills">
+      <span><i></i> معالجة داخل جهازك</span>
+      <span>Fiber 30W</span>
+      <div id="modelBadge" class="model-badge" data-state="idle"><i></i><span>AI جاهز للتحميل</span></div>
     </div>
   </header>
 
-  <main class="app-shell">
-    <section class="hero">
-      <div>
-        <span class="eyebrow">EZCAD READY · PORTRAIT CLEAN CUT</span>
-        <h2>حوّل أي بورتريه إلى حفر نظيف.<br><em>الشخص فقط، بدون فوضى الخلفية.</em></h2>
-        <p>عزل ذكي للشخص، حماية لتفاصيل الوجه، مقاس محسوب بالـ DPI، وتصدير BMP/PNG جاهز للإدخال في EZCAD على الفايبر 30 وات.</p>
+  <main>
+    <section id="modeHome" class="mode-home">
+      <div class="home-copy">
+        <span class="kicker">MATBAAGY · AI PORTRAIT STUDIO</span>
+        <h1>اختار نوع الشغل،<br><em>والمكنة تاخد ملفها جاهز.</em></h1>
+        <p>مساران منفصلان تمامًا للحفر على الفايبر: صورة شخص كاملة بعزل احترافي، أو صورة عين مقصوصة بتفاصيل دقيقة.</p>
       </div>
-      <div class="binary-seal" aria-label="الناتج لونان فقط">
-        <span>2</span>
-        <small>COLORS<br>ONLY</small>
+      <div class="mode-grid">
+        <button class="mode-card photo-mode" data-mode="photo">
+          <span class="mode-number">01</span>
+          <span class="mode-icon person-icon"><i></i></span>
+          <span class="mode-copy"><b>حفر صورة</b><small>ارفع صورة شخص · عزل AI · خلفية شفافة · أبيض وأسود</small></span>
+          <span class="mode-go">ابدأ الآن ←</span>
+        </button>
+        <button class="mode-card eye-mode" data-mode="eye">
+          <span class="mode-number">02</span>
+          <span class="mode-icon eye-icon"><i></i></span>
+          <span class="mode-copy"><b>حفر عين</b><small>ارفع صورة مقصوصة للعين فقط · تحسين التفاصيل · ملف مستقل</small></span>
+          <span class="mode-go">اختر صورة العين ←</span>
+        </button>
+      </div>
+      <div class="feature-strip">
+        <span>MODNet عزل احترافي</span><span>Swin2SR تحسين AI مجاني</span><span>PNG شفاف</span><span>SVG + BMP</span>
       </div>
     </section>
 
-    <section class="workspace-grid">
-      <aside class="control-panel">
-        <div class="step-head"><b>01</b><span>الصورة</span></div>
-        <label id="dropZone" class="drop-zone" for="fileInput">
-          <input id="fileInput" type="file" accept="image/png,image/jpeg,image/webp" hidden>
-          <span class="upload-icon" aria-hidden="true">↑</span>
-          <strong>اختر صورة الشخص</strong>
-          <small>أو اسحب الصورة هنا · PNG / JPG / WEBP</small>
-        </label>
-        <div id="fileMeta" class="file-meta" hidden></div>
-
-        <div class="step-head"><b>02</b><span>اختيار النتيجة</span></div>
-        <div class="preset-list" role="radiogroup" aria-label="بريسيتات المعالجة">
-          <label class="preset active">
-            <input type="radio" name="preset" value="portrait" checked>
-            <span class="preset-dot"></span>
-            <span><strong>Portrait Clean</strong><small>الأفضل للوجوه والأطفال</small></span>
-            <em>موصى به</em>
-          </label>
-          <label class="preset">
-            <input type="radio" name="preset" value="print">
-            <span class="preset-dot"></span>
-            <span><strong>Print Max</strong><small>استنسل قوي وواضح</small></span>
-          </label>
-          <label class="preset">
-            <input type="radio" name="preset" value="deep">
-            <span class="preset-dot"></span>
-            <span><strong>Fiber Deep Max</strong><small>أسود أكثر للحفر العميق</small></span>
-          </label>
-          <label class="preset">
-            <input type="radio" name="preset" value="soft">
-            <span class="preset-dot"></span>
-            <span><strong>Soft Detail</strong><small>تفاصيل الصور الناعمة</small></span>
-          </label>
-        </div>
-
-        <div class="step-head"><b>03</b><span>إعداد EZCAD 30W</span></div>
-        <div class="ezcad-panel" aria-label="إعدادات EZCAD للفايبر 30 وات">
-          <label class="field-row field-full">الخامة / نوع العلامة
-            <select id="materialSelect">
-              <option value="steel_photo" selected>ستانلس / ميدالية — صورة ناعمة</option>
-              <option value="steel_dark">ستانلس — علامة غامقة أقوى</option>
-              <option value="anodized">ألمنيوم أنودايز — علامة فاتحة</option>
-              <option value="brass_copper">نحاس / براس — اختبار آمن</option>
-              <option value="abs_plastic">ABS بلاستيك — طاقة منخفضة</option>
-              <option value="test_grid">مصفوفة اختبار 6 خانات</option>
-            </select>
-          </label>
-          <div class="ezcad-size-grid">
-            <label class="field-row">العرض mm
-              <input id="targetWidth" type="number" min="5" max="300" step="0.5" value="50">
+    <section id="photoWorkspace" class="workspace" hidden>
+      <div class="workspace-head">
+        <button class="back-btn" data-home>→ رجوع للاختيارات</button>
+        <div><span>المسار 01</span><h2>حفر صورة شخص</h2><p>عزل كامل، قص ذكي، وتحويل جاهز للفايبر.</p></div>
+      </div>
+      <div class="workspace-grid">
+        <aside class="control-panel">
+          <div class="panel-section">
+            <div class="section-title"><span>01</span><b>صورة الشخص</b></div>
+            <label id="dropZone" class="drop-zone" for="fileInput">
+              <input id="fileInput" type="file" accept="image/png,image/jpeg,image/webp" hidden>
+              <span class="upload-orb">＋</span><b>اختر صورة الشخص</b><small>PNG / JPG / WEBP</small>
             </label>
-            <label class="field-row">الارتفاع mm
-              <input id="targetHeight" type="number" min="5" max="300" step="0.5" value="70">
-            </label>
-            <label class="field-row">DPI
-              <select id="dpiSelect">
-                <option value="300">300</option>
-                <option value="400">400</option>
-                <option value="500" selected>500</option>
-                <option value="600">600</option>
-                <option value="800">800</option>
-              </select>
-            </label>
+            <div id="fileMeta" class="file-meta" hidden></div>
+            <button id="photoEnhanceBtn" class="ai-btn" disabled><span>✦</span><b>توضيح الصورة بالـ AI</b><small>مجاني · يعمل داخل المتصفح</small></button>
           </div>
-          <label class="check-row"><input id="lockRatio" type="checkbox" checked> تثبيت نسبة الصورة تلقائيًا</label>
-          <div class="line-space-box">Line Space المقترح داخل EZCAD = <b id="lineSpacePreview">0.051 mm</b></div>
-        </div>
 
-        <div id="ezcadCard" class="ezcad-card">
-          <header>
-            <strong id="materialName">ستانلس / ميدالية — صورة ناعمة</strong>
-            <small>ابدأ بهذه القيم ثم اختبر على نفس الخامة</small>
-          </header>
-          <dl>
-            <div><dt>Power</dt><dd id="powerVal">35–50%</dd></div>
-            <div><dt>Speed</dt><dd id="speedVal">800–1200 mm/s</dd></div>
-            <div><dt>Frequency</dt><dd id="frequencyVal">30–50 kHz</dd></div>
-            <div><dt>Hatch / Line</dt><dd id="lineSpaceVal">0.05 mm</dd></div>
-            <div><dt>DPI</dt><dd id="dpiVal">500</dd></div>
-            <div><dt>Loop</dt><dd id="loopVal">1</dd></div>
-          </dl>
-          <p id="settingsNote">للصور الشخصية ابدأ بطاقة متوسطة وسرعة أعلى، ثم قلّل السرعة أو زوّد الطاقة تدريجيًا لو النتيجة خفيفة.</p>
-        </div>
-
-
-        <button id="prepareBtn" class="primary-btn" disabled>
-          <span>Auto Prepare for Fiber 30W</span><b aria-hidden="true">←</b>
-        </button>
-        <div id="progressWrap" class="progress-wrap" hidden>
-          <div class="progress-line"><i id="progressBar"></i></div>
-          <span id="progressText">جاري التحضير…</span>
-        </div>
-
-        <div id="manualPanel" class="manual-panel" hidden>
-          <div class="warning-title"><span>!</span><b>العزل اليدوي الآمن</b></div>
-          <p>لم نعتمد ماسكًا ضعيفًا. لوّن الشخص بالكامل أو امسح الخلفية، ثم اضغط تطبيق.</p>
-          <div class="brush-tools">
-            <button class="tool-btn active" data-brush="add">إضافة للشخص</button>
-            <button class="tool-btn" data-brush="erase">مسح خلفية</button>
+          <div class="panel-section">
+            <div class="section-title"><span>02</span><b>شكل الحفر</b></div>
+            <div class="preset-list">
+              <label class="preset active"><input type="radio" name="preset" value="portrait" checked><i></i><span><b>Portrait Clean</b><small>أفضل حماية للوجه</small></span></label>
+              <label class="preset"><input type="radio" name="preset" value="print"><i></i><span><b>Print Max</b><small>تباين قوي وواضح</small></span></label>
+              <label class="preset"><input type="radio" name="preset" value="deep"><i></i><span><b>Fiber Deep</b><small>أسود أكثر للحفر العميق</small></span></label>
+              <label class="preset"><input type="radio" name="preset" value="soft"><i></i><span><b>Soft Detail</b><small>تفاصيل ناعمة أكثر</small></span></label>
+            </div>
           </div>
-          <label class="range-row">حجم الفرشاة <input id="brushSize" type="range" min="8" max="120" value="42"></label>
-          <div class="manual-actions">
-            <button id="resetMaskBtn" class="ghost-btn">إعادة الماسك</button>
-            <button id="applyMaskBtn" class="solid-small">تطبيق الماسك</button>
+
+          <div class="panel-section compact-settings">
+            <div class="section-title"><span>03</span><b>المقاس والخامة</b></div>
+            <label>الخامة<select id="materialSelect">
+              <option value="steel_photo">ستانلس / ميدالية — صورة ناعمة</option>
+              <option value="steel_dark">ستانلس — علامة غامقة</option>
+              <option value="anodized">ألومنيوم أنودايز</option>
+              <option value="brass_copper">نحاس / براس</option>
+              <option value="abs_plastic">ABS بلاستيك</option>
+              <option value="test_grid">مصفوفة اختبار</option>
+            </select></label>
+            <div class="field-grid">
+              <label>العرض mm<input id="targetWidth" type="number" min="5" max="300" step=".5" value="50"></label>
+              <label>الارتفاع mm<input id="targetHeight" type="number" min="5" max="300" step=".5" value="70"></label>
+              <label>DPI<select id="dpiSelect"><option>300</option><option>400</option><option selected>500</option><option>600</option><option>800</option></select></label>
+            </div>
+            <label class="check-row"><input id="lockRatio" type="checkbox" checked> تثبيت نسبة الصورة</label>
+            <span class="line-space">Line Space: <b id="lineSpacePreview">0.051 mm</b></span>
           </div>
-        </div>
-      </aside>
 
-      <section class="preview-area">
-        <div class="preview-toolbar">
-          <div class="view-tabs" role="tablist">
-            <button class="view-tab active" data-view="all">الثلاث معاينات</button>
-            <button class="view-tab" data-view="original">الأصل</button>
-            <button class="view-tab" data-view="mask">ماسك الشخص</button>
-            <button class="view-tab" data-view="final">نتيجة الحفر</button>
+          <div id="ezcadCard" class="settings-card">
+            <strong id="materialName">ستانلس / ميدالية</strong>
+            <div><span>Power <b id="powerVal">35–50%</b></span><span>Speed <b id="speedVal">800–1200</b></span><span>Frequency <b id="frequencyVal">30–50kHz</b></span><span>Line <b id="lineSpaceVal">0.05mm</b></span><span>DPI <b id="dpiVal">500</b></span><span>Loop <b id="loopVal">1</b></span></div>
+            <p id="settingsNote"></p>
           </div>
-          <button id="invertBtn" class="invert-btn" disabled><i></i> عكس الأبيض والأسود</button>
-        </div>
 
-        <div id="emptyState" class="empty-state">
-          <div class="empty-portrait" aria-hidden="true"><span></span><i></i></div>
-          <h3>المعاينة ستظهر هنا</h3>
-          <p>ارفع صورة واضحة، وسيتولى البرنامج عزل الشخص وتنظيفه وتجهيزه للحفر.</p>
-          <div class="pipeline-hint">
-            <span>عزل الشخص</span><b>←</b><span>حماية الوجه</span><b>←</b><span>أبيض وأسود</span>
+          <button id="prepareBtn" class="primary-btn" disabled><span>عزل وتجهيز الصورة للفايبر</span><b>←</b></button>
+          <div id="progressWrap" class="progress-wrap" hidden><div><i id="progressBar"></i></div><span id="progressText">جاري التحضير…</span></div>
+
+          <div id="manualPanel" class="manual-panel" hidden>
+            <strong>تصحيح العزل يدويًا</strong><p>أضف أجزاء الشخص أو امسح أي بقايا خلفية.</p>
+            <div class="brush-tools"><button class="tool-btn active" data-brush="add">إضافة</button><button class="tool-btn" data-brush="erase">مسح</button></div>
+            <label>حجم الفرشاة<input id="brushSize" type="range" min="8" max="120" value="42"></label>
+            <div class="manual-actions"><button id="resetMaskBtn">إعادة</button><button id="applyMaskBtn">تطبيق الماسك</button></div>
           </div>
-        </div>
+        </aside>
 
-        <div id="previewGrid" class="preview-grid" hidden>
-          <article class="preview-card" data-card="original">
-            <header><span><b>01</b> الصورة الأصلية</span><small>ORIGINAL</small></header>
-            <div class="canvas-wrap checker"><canvas id="originalCanvas"></canvas></div>
-          </article>
-          <article class="preview-card" data-card="mask">
-            <header><span><b>02</b> ماسك الشخص</span><small>PERSON MASK</small></header>
-            <div id="maskCanvasWrap" class="canvas-wrap white"><canvas id="maskCanvas"></canvas></div>
-          </article>
-          <article class="preview-card final-card" data-card="final">
-            <header><span><b>03</b> نتيجة الحفر</span><small>PURE B/W</small></header>
-            <div class="canvas-wrap white"><canvas id="finalCanvas"></canvas></div>
-          </article>
-        </div>
+        <section class="preview-area">
+          <div class="preview-toolbar">
+            <div class="view-tabs"><button class="view-tab active" data-view="all">الكل</button><button class="view-tab" data-view="original">الأصل</button><button class="view-tab" data-view="mask">العزل</button><button class="view-tab" data-view="final">الحفر</button></div>
+            <button id="invertBtn" class="invert-btn" disabled>◐ عكس الأسود والأبيض</button>
+          </div>
+          <div id="emptyState" class="empty-state"><span class="empty-orb">م</span><h3>ارفع صورة الشخص</h3><p>سيظهر الأصل، العزل الشفاف، ونتيجة الحفر هنا.</p></div>
+          <div id="previewGrid" class="preview-grid" hidden>
+            <article class="preview-card" data-card="original"><header><b>الصورة الأصلية</b><small>ORIGINAL</small></header><div class="canvas-wrap checker"><canvas id="originalCanvas"></canvas></div></article>
+            <article class="preview-card" data-card="mask"><header><b>العزل الشفاف</b><small>AI CUTOUT</small></header><div id="maskCanvasWrap" class="canvas-wrap checker"><canvas id="maskCanvas"></canvas></div></article>
+            <article class="preview-card final-card" data-card="final"><header><b>نتيجة الحفر</b><small>PURE B/W</small></header><div class="canvas-wrap checker"><canvas id="finalCanvas"></canvas></div></article>
+          </div>
+          <div id="resultStats" class="result-stats" hidden><span>أسود وأبيض فقط</span><span id="sizeStat">—</span><span id="faceStat">حماية الوجه</span><span id="exportPxStat">—</span></div>
+          <div id="exportBar" class="export-bar" hidden>
+            <button id="cutoutBtn"><span>PNG</span> الشخص شفاف</button><button id="pngBtn"><span>PNG</span> الحفر شفاف</button><button id="bmpBtn" class="main-export"><span>BMP</span> EZCAD</button><button id="svgBtn"><span>SVG</span> فيكتور</button><button id="pdfBtn"><span>PDF</span> طباعة</button><button id="txtBtn"><span>TXT</span> الإعدادات</button>
+          </div>
+        </section>
+      </div>
+    </section>
 
-        <div id="resultStats" class="result-stats" hidden>
-          <span><i class="black-chip"></i> أسود نقي <b>RGB 0,0,0</b></span>
-          <span><i class="white-chip"></i> أبيض نقي <b>RGB 255,255,255</b></span>
-          <span id="sizeStat">—</span>
-          <span id="faceStat">حماية الوجه فعّالة</span>
-          <span id="exportPxStat">مقاس EZCAD —</span>
-        </div>
-
-        <div id="exportBar" class="export-bar" hidden>
-          <div><strong>الملف جاهز للحفر</strong><small>اختر صيغة التصدير المطلوبة</small></div>
-          <button id="bmpBtn" class="export-btn primary-export"><span>BMP</span> EZCAD مباشر</button>
-          <button id="pngBtn" class="export-btn"><span>PNG</span> صورة احتياطية</button>
-          <button id="txtBtn" class="export-btn"><span>TXT</span> إعدادات الحفر</button>
-          <button id="svgBtn" class="export-btn"><span>SVG</span> فيكتور أسود</button>
-          <button id="pdfBtn" class="export-btn"><span>PDF</span> للطباعة</button>
-        </div>
-      </section>
+    <section id="eyeWorkspace" class="workspace eye-workspace" hidden>
+      <div class="workspace-head">
+        <button class="back-btn" data-home>→ رجوع للاختيارات</button>
+        <div><span>المسار 02</span><h2>حفر العين فقط</h2><p>ارفع صورة مقصوصة للعين؛ هذا المسار لا يستخدم صورة الشخص.</p></div>
+      </div>
+      <div class="eye-grid">
+        <aside class="eye-controls">
+          <label id="eyeDropZone" class="drop-zone eye-drop" for="eyeFileInput">
+            <input id="eyeFileInput" type="file" accept="image/png,image/jpeg,image/webp" hidden>
+            <span class="upload-orb">◉</span><b>اختر صورة العين المقصوصة</b><small>صورة العين فقط، وليست صورة الشخص</small>
+          </label>
+          <div id="eyeFileMeta" class="file-meta" hidden></div>
+          <button id="eyeEnhanceBtn" class="ai-btn" disabled><span>✦</span><b>توضيح العين بالـ AI</b><small>تكبير ×2 وإظهار الجفن والقزحية</small></button>
+          <div class="eye-options">
+            <label>قوة التفاصيل<input id="eyeDetailRange" type="range" min="1" max="10" value="6"></label>
+            <label>تنظيف النويز<input id="eyeNoiseRange" type="range" min="1" max="10" value="5"></label>
+          </div>
+          <button id="eyeBtn" class="primary-btn eye-primary" disabled><span>جهّز حفر العين فقط</span><b>←</b></button>
+          <div class="eye-note"><b>مهم</b><p>أفضل نتيجة تكون بصورة واضحة ومقربة يظهر فيها الجفن والرموش والقزحية.</p></div>
+        </aside>
+        <section class="eye-preview-area">
+          <div id="eyeEmpty" class="empty-state"><span class="empty-eye">◉</span><h3>اختر صورة العين</h3><p>ستُقص التفاصيل تلقائيًا بأكبر قدر ممكن.</p></div>
+          <div id="eyePreview" class="eye-preview-grid" hidden>
+            <article class="preview-card"><header><b>صورة العين الأصلية</b><small>EYE SOURCE</small></header><div class="canvas-wrap checker"><canvas id="eyeOriginalCanvas"></canvas></div></article>
+            <article id="eyeCard" class="preview-card final-card"><header><b>رسمة العين للحفر</b><small>EYE ENGRAVE</small></header><div class="canvas-wrap checker"><canvas id="eyeCanvas"></canvas></div></article>
+          </div>
+          <div class="export-bar eye-export-bar"><button id="eyePngBtn" disabled><span>PNG</span> عين شفافة</button><button id="eyeSvgBtn" disabled><span>SVG</span> فيكتور العين</button></div>
+        </section>
+      </div>
     </section>
   </main>
-
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script type="module" src="app.js?v=4.1.0"></script>
 </body>
 </html>
