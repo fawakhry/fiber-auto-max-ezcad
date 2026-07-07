@@ -257,11 +257,25 @@ function refinedAlpha(rawMask,prob,w,h){
   for(let i=0;i<alpha.length;i++)alpha[i]=core[i]?1:(reach[i]?smoothstep(.10,.76,prob[i]):0);
   return alpha;
 }
+function alphaOtsu(alpha,mask){
+  if(!alpha)return .12;const hist=new Uint32Array(256);let total=0,sum=0;
+  for(let i=0;i<alpha.length;i++)if(mask[i]&&alpha[i]>.002){const v=clamp(Math.round(alpha[i]*255),0,255);hist[v]++;total++;sum+=v}
+  if(total<64)return .12;let wb=0,sb=0,best=-1,t=34;
+  for(let i=0;i<256;i++){wb+=hist[i];if(!wb)continue;const wf=total-wb;if(!wf)break;sb+=i*hist[i];const score=wb*wf*(sb/wb-(sum-sb)/wf)**2;if(score>best){best=score;t=i}}
+  return clamp((t/255)*.72,.10,.28);
+}
+function cutoutMask(mask,alpha,w,h){
+  if(!alpha)return mask;const base=bounds(mask,w,h),th=alphaOtsu(alpha,mask),seed=new Uint8Array(mask.length);
+  for(let i=0;i<seed.length;i++)seed[i]=mask[i]&&alpha[i]>=th?1:0;
+  let clean=primary(seed,w,h),b=bounds(clean,w,h);if(!base||!b||b.area<base.area*.35)return mask;
+  const r=Math.max(1,Math.round(Math.max(w,h)/1800));clean=dilate(clean,w,h,r);clean=erode(dilate(clean,w,h,r),w,h,r);b=bounds(clean,w,h);if(!b||b.area<base.area*.35)return mask;
+  clean=fillHoles(clean,w,h,Math.max(100,Math.round(b.area*.006)));return clean;
+}
 function buildWhiteCutout(mask,alpha){
-  const w=state.source.width,h=state.source.height,b=bounds(mask,w,h);if(!b)return null;
+  const w=state.source.width,h=state.source.height,cm=mask,b=bounds(cm,w,h);if(!b)return null;
   const m=Math.max(1,Math.round(Math.max(b.w,b.h)*.012)),sx=Math.max(0,b.x-m),sy=Math.max(0,b.y-m),ex=Math.min(w,b.x+b.w+m),ey=Math.min(h,b.y+b.h+m),ow=ex-sx,oh=ey-sy,c=makeCanvas(ow,oh),ctx=c.getContext("2d",{alpha:false,willReadFrequently:true});
   ctx.fillStyle="white";ctx.fillRect(0,0,ow,oh);ctx.drawImage(state.source,sx,sy,ow,oh,0,0,ow,oh);const im=ctx.getImageData(0,0,ow,oh),d=im.data;
-  for(let y=0;y<oh;y++)for(let x=0;x<ow;x++){const si=(y+sy)*w+x+sx,p=(y*ow+x)*4,a=clamp(alpha?.[si]??mask[si]??0,0,1);if(a<=.015){d[p]=d[p+1]=d[p+2]=255}else if(a<.995){d[p]=clamp(Math.round(d[p]*a+255*(1-a)),0,255);d[p+1]=clamp(Math.round(d[p+1]*a+255*(1-a)),0,255);d[p+2]=clamp(Math.round(d[p+2]*a+255*(1-a)),0,255)}d[p+3]=255}
+  for(let y=0;y<oh;y++)for(let x=0;x<ow;x++){const si=(y+sy)*w+x+sx,p=(y*ow+x)*4;if(!cm[si])d[p]=d[p+1]=d[p+2]=255;d[p+3]=255}
   ctx.putImageData(im,0,0);return c;
 }
 async function personMaskMediaPipe(){
@@ -274,8 +288,17 @@ async function personMaskMODNet(){
   for(let i=0,p=0;i<prob.length;i++,p+=4){const v=Math.max(md[p],md[p+1],md[p+2])/255;prob[i]=v;seed[i]=v>.08?1:0}
   const rawPrimary=primary(seed,w,h),b=bounds(rawPrimary,w,h);if(!reliable(b,w,h))throw Error("MODNet weak matte");const r=Math.max(2,Math.round(Math.max(w,h)/1200)),closed=erode(dilate(rawPrimary,w,h,r),w,h,r);let clean=dilate(closed,w,h,r);clean=fillHoles(clean,w,h,Math.max(100,Math.round(b.area*.004)));const alpha=new Float32Array(prob.length),reach=dilate(rawPrimary,w,h,r*2);for(let i=0;i<alpha.length;i++)alpha[i]=reach[i]?smoothstep(.035,.94,prob[i]):0;return{mask:clean,alpha};
 }
+function fusePersonMasks(mod,mp,w,h){
+  const mb=bounds(mod.mask,w,h),pb=bounds(mp.mask,w,h);if(!reliable(mb,w,h)||!reliable(pb,w,h))return mod;
+  const guard=Math.max(10,Math.round(Math.max(w,h)/85)),mpGuard=dilate(mp.mask,w,h,guard),modGuard=dilate(mod.mask,w,h,Math.max(6,Math.round(guard*.55))),out=new Uint8Array(w*h);
+  for(let i=0;i<out.length;i++)out[i]=(mod.mask[i]&&mpGuard[i])||(mp.mask[i]&&modGuard[i])?1:0;
+  let clean=primary(out,w,h),cb=bounds(clean,w,h);if(!cb||cb.area<Math.max(mb.area,pb.area)*.48)return mod;
+  clean=dilate(clean,w,h,Math.max(1,Math.round(Math.max(w,h)/1800)));cb=bounds(clean,w,h);clean=fillHoles(clean,w,h,Math.max(120,Math.round((cb?.area||0)*.006)));
+  const alpha=new Float32Array(w*h);for(let i=0;i<alpha.length;i++)alpha[i]=clean[i]?Math.max(mod.alpha?.[i]||0,mp.alpha?.[i]||0,.92):0;
+  return{mask:clean,alpha};
+}
 async function personMask(){
-  try{setProgress(15,"تشغيل MODNet لعزل الشعر والحواف الدقيقة…");return await personMaskMODNet()}catch(e){console.warn("MODNet fallback",e);modelStatus("loading","تشغيل عزل MediaPipe الاحتياطي…");const result=await personMaskMediaPipe();modelStatus("ready","العزل الاحتياطي جاهز");return result}
+  try{setProgress(15,"تشغيل MODNet لعزل الشعر والحواف الدقيقة…");const mod=await personMaskMODNet();try{setProgress(24,"مطابقة العزل مع MediaPipe لحماية الجسم وإزالة الخلفية…");const mp=await personMaskMediaPipe();modelStatus("ready","تم دمج MODNet + MediaPipe");return fusePersonMasks(mod,mp,state.source.width,state.source.height)}catch(e){console.warn("MediaPipe refine skipped",e);modelStatus("ready","MODNet عزل احترافي جاهز");return mod}}catch(e){console.warn("MODNet fallback",e);modelStatus("loading","تشغيل عزل MediaPipe الاحتياطي…");const result=await personMaskMediaPipe();modelStatus("ready","العزل الاحتياطي جاهز");return result}
 }
 
 function cropPerson(mask){
