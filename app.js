@@ -81,11 +81,17 @@ const DEFAULT_DPI = 500;
 const DEFAULT_WIDTH_MM = 50;
 const PX_LIMIT = 6200;
 const $ = id => document.getElementById(id);
-const ui = Object.fromEntries(["modeHome","photoWorkspace","eyeWorkspace","fileInput","dropZone","fileMeta","photoEnhanceBtn","prepareBtn","eyeBtn","eyeFileInput","eyeDropZone","eyeFileMeta","eyeEnhanceBtn","eyeDetailRange","eyeNoiseRange","eyeEmpty","eyePreview","eyeOriginalCanvas","modelBadge","progressWrap","progressBar","progressText","manualPanel","brushSize","resetMaskBtn","applyMaskBtn","emptyState","previewGrid","originalCanvas","maskCanvas","finalCanvas","eyeCanvas","eyeCard","maskCanvasWrap","resultStats","exportBar","invertBtn","cutoutBtn","pngBtn","bmpBtn","txtBtn","svgBtn","pdfBtn","eyePngBtn","eyeSvgBtn","sizeStat","faceStat","exportPxStat","toast","materialSelect","targetWidth","targetHeight","dpiSelect","lineSpacePreview","lockRatio","materialName","powerVal","speedVal","frequencyVal","lineSpaceVal","dpiVal","loopVal","settingsNote"].map(id => [id, $(id)]));
+const ui = Object.fromEntries(["modeHome","photoWorkspace","eyeWorkspace","fileInput","dropZone","fileMeta","photoEnhanceBtn","prepareBtn","eyeBtn","eyeFileInput","eyeDropZone","eyeFileMeta","eyeEnhanceBtn","eyeDetailRange","eyeNoiseRange","cleanupRange","edgeSmoothRange","faceDetailRange","blackStrengthRange","eyeEmpty","eyePreview","eyeOriginalCanvas","modelBadge","progressWrap","progressBar","progressText","manualPanel","brushSize","resetMaskBtn","applyMaskBtn","emptyState","previewGrid","originalCanvas","maskCanvas","finalCanvas","eyeCanvas","eyeCard","maskCanvasWrap","resultStats","exportBar","invertBtn","cutoutBtn","pngBtn","bmpBtn","txtBtn","svgBtn","pdfBtn","eyePngBtn","eyeSvgBtn","sizeStat","faceStat","exportPxStat","toast","materialSelect","targetWidth","targetHeight","dpiSelect","lineSpacePreview","lockRatio","materialName","powerVal","speedVal","frequencyVal","lineSpaceVal","dpiVal","loopVal","settingsNote"].map(id => [id, $(id)]));
 const state = { source:null, eyeSource:null, name:"portrait", eyeName:"eye", mask:null, alpha:null, cutout:null, finalMask:null, binary:null, eyeBinary:null, eyeWidth:0, eyeHeight:0, width:0, height:0, segmenter:null, faceLandmarker:null, mattingModel:null, upscaler:null, hfModule:null, hfPromise:null, mattingPromise:null, upscalePromise:null, vision:null, visionModule:null, modelPromise:null, facePromise:null, processing:false, inverted:false, manual:false, brushMode:"add", drawing:false, lastPoint:null, face:null, exportMeta:null, sourceProcessSize:null, toastTimer:0 };
 const clamp = (v,a,b) => Math.max(a,Math.min(b,v));
 const tick = () => new Promise(r => requestAnimationFrame(() => setTimeout(r,0)));
 const currentPreset = () => PRESETS[document.querySelector('input[name="preset"]:checked')?.value || "portrait"];
+const qualitySettings = () => ({
+  cleanup: clamp(parseInt(ui.cleanupRange?.value || 6,10) || 6,1,10),
+  edgeSmooth: clamp(parseInt(ui.edgeSmoothRange?.value || 4,10) || 0,0,10),
+  faceDetail: clamp(parseInt(ui.faceDetailRange?.value || 7,10) || 7,1,10),
+  blackStrength: clamp(parseInt(ui.blackStrengthRange?.value || 5,10) || 5,1,10)
+});
 
 const currentMaterial = () => MATERIALS[ui.materialSelect?.value || "steel_photo"] || MATERIALS.steel_photo;
 const getDpi = () => clamp(parseInt(ui.dpiSelect?.value || DEFAULT_DPI,10) || DEFAULT_DPI,300,800);
@@ -273,9 +279,10 @@ function cutoutMask(mask,alpha,w,h){
 }
 function buildWhiteCutout(mask,alpha){
   const w=state.source.width,h=state.source.height,cm=mask,b=bounds(cm,w,h);if(!b)return null;
+  const q=qualitySettings(),edgeR=q.edgeSmooth?Math.max(1,Math.round(q.edgeSmooth*Math.max(w,h)/5200)):0,core=edgeR?erode(cm,w,h,edgeR):cm;
   const m=Math.max(1,Math.round(Math.max(b.w,b.h)*.012)),sx=Math.max(0,b.x-m),sy=Math.max(0,b.y-m),ex=Math.min(w,b.x+b.w+m),ey=Math.min(h,b.y+b.h+m),ow=ex-sx,oh=ey-sy,c=makeCanvas(ow,oh),ctx=c.getContext("2d",{alpha:false,willReadFrequently:true});
   ctx.fillStyle="white";ctx.fillRect(0,0,ow,oh);ctx.drawImage(state.source,sx,sy,ow,oh,0,0,ow,oh);const im=ctx.getImageData(0,0,ow,oh),d=im.data;
-  for(let y=0;y<oh;y++)for(let x=0;x<ow;x++){const si=(y+sy)*w+x+sx,p=(y*ow+x)*4;if(!cm[si])d[p]=d[p+1]=d[p+2]=255;d[p+3]=255}
+  for(let y=0;y<oh;y++)for(let x=0;x<ow;x++){const si=(y+sy)*w+x+sx,p=(y*ow+x)*4;if(!cm[si])d[p]=d[p+1]=d[p+2]=255;else if(edgeR&&!core[si]){const k=.06+q.edgeSmooth*.018;d[p]=clamp(Math.round(d[p]*(1-k)+255*k),0,255);d[p+1]=clamp(Math.round(d[p+1]*(1-k)+255*k),0,255);d[p+2]=clamp(Math.round(d[p+2]*(1-k)+255*k),0,255)}d[p+3]=255}
   ctx.putImageData(im,0,0);return c;
 }
 async function personMaskMediaPipe(){
@@ -290,10 +297,11 @@ async function personMaskMODNet(){
 }
 function fusePersonMasks(mod,mp,w,h){
   const mb=bounds(mod.mask,w,h),pb=bounds(mp.mask,w,h);if(!reliable(mb,w,h)||!reliable(pb,w,h))return mod;
-  const guard=Math.max(10,Math.round(Math.max(w,h)/85)),mpGuard=dilate(mp.mask,w,h,guard),modGuard=dilate(mod.mask,w,h,Math.max(6,Math.round(guard*.55))),out=new Uint8Array(w*h);
-  for(let i=0;i<out.length;i++)out[i]=(mod.mask[i]&&mpGuard[i])||(mp.mask[i]&&modGuard[i])?1:0;
-  let clean=primary(out,w,h),cb=bounds(clean,w,h);if(!cb||cb.area<Math.max(mb.area,pb.area)*.48)return mod;
-  clean=dilate(clean,w,h,Math.max(1,Math.round(Math.max(w,h)/1800)));cb=bounds(clean,w,h);clean=fillHoles(clean,w,h,Math.max(120,Math.round((cb?.area||0)*.006)));
+  const q=qualitySettings(),long=Math.max(w,h),tight=Math.max(4,Math.round(long/(150+q.cleanup*14))),wide=Math.max(tight+3,Math.round(long/(88+q.cleanup*8))),modWide=Math.max(5,Math.round(long/145)),mpTight=dilate(mp.mask,w,h,tight),mpWide=dilate(mp.mask,w,h,wide),modGuard=dilate(mod.mask,w,h,modWide),out=new Uint8Array(w*h),alphaNeed=.88-q.cleanup*.018;
+  for(let i=0;i<out.length;i++)out[i]=(mp.mask[i]&&modGuard[i])||(mod.mask[i]&&mpTight[i])||(mod.mask[i]&&(mod.alpha?.[i]||0)>alphaNeed&&mpWide[i])?1:0;
+  let clean=primary(out,w,h),cb=bounds(clean,w,h);if(!cb||cb.area<Math.max(mb.area,pb.area)*.58)return mod;
+  const closeR=Math.max(1,Math.round(long/1900)),openR=q.cleanup>=8?Math.max(1,Math.round(long/2400)):0;
+  clean=dilate(clean,w,h,closeR);if(openR)clean=dilate(erode(clean,w,h,openR),w,h,openR);cb=bounds(clean,w,h);clean=fillHoles(clean,w,h,Math.max(120,Math.round((cb?.area||0)*.006)));
   const alpha=new Float32Array(w*h);for(let i=0;i<alpha.length;i++)alpha[i]=clean[i]?Math.max(mod.alpha?.[i]||0,mp.alpha?.[i]||0,.92):0;
   return{mask:clean,alpha};
 }
@@ -319,8 +327,8 @@ function localMap(gray,mask,w,h,r,normalize,p){
 function otsu(gray,mask){const hist=new Uint32Array(256);let total=0,sum=0;for(let i=0;i<gray.length;i++)if(mask[i]){hist[gray[i]]++;total++;sum+=gray[i]}let wb=0,sb=0,best=-1,t0=128;for(let t=0;t<256;t++){wb+=hist[t];if(!wb)continue;const wf=total-wb;if(!wf)break;sb+=t*hist[t];const v=wb*wf*(sb/wb-(sum-sb)/wf)**2;if(v>best){best=v;t0=t}}return clamp(t0,72,190)}
 const inFace=(x,y,f)=>f&&x>=f.x&&y>=f.y&&x<f.x+f.w&&y<f.y+f.h;
 function binarize(gray,mask,w,h,face,p){
-  const local=localMap(gray,mask,w,h,clamp(Math.round(Math.min(w,h)*.018),9,42),false,p),global=otsu(gray,mask),out=new Uint8Array(gray.length);out.fill(255);
-  for(let y=1;y<h-1;y++)for(let x=1;x<w-1;x++){const i=y*w+x;if(!mask[i])continue;const v=gray[i],f=inFace(x,y,face),th=(f ? 0.40 : 0.57)*(global+(f?p.fgb:p.gb))+(f ? 0.60 : 0.43)*(local[i]-(f?p.flb:p.lb));let black=v<th||v<global-(f?30:25);const gx=-gray[i-w-1]-2*gray[i-1]-gray[i+w-1]+gray[i-w+1]+2*gray[i+1]+gray[i+w+1],gy=-gray[i-w-1]-2*gray[i-w]-gray[i-w+1]+gray[i+w-1]+2*gray[i+w]+gray[i+w+1],edge=(Math.abs(gx)+Math.abs(gy))/4;if(edge>p.edge*(f ? 0.72 : 1)&&v<(f?220:196)&&v<local[i]+17)black=true;out[i]=black?0:255}return out;
+  const q=qualitySettings(),local=localMap(gray,mask,w,h,clamp(Math.round(Math.min(w,h)*.018),9,42),false,p),global=otsu(gray,mask),out=new Uint8Array(gray.length),blackBoost=(q.blackStrength-5)*4,faceDetail=(q.faceDetail-5)*2.6;out.fill(255);
+  for(let y=1;y<h-1;y++)for(let x=1;x<w-1;x++){const i=y*w+x;if(!mask[i])continue;const v=gray[i],f=inFace(x,y,face),th=(f ? 0.40 : 0.57)*(global+(f?p.fgb:p.gb))+(f ? 0.60 : 0.43)*(local[i]-(f?p.flb:p.lb))+blackBoost-(f?Math.max(0,faceDetail)*1.8:0);let black=v<th||v<global-(f?30:25)+blackBoost;const gx=-gray[i-w-1]-2*gray[i-1]-gray[i+w-1]+gray[i-w+1]+2*gray[i+1]+gray[i+w+1],gy=-gray[i-w-1]-2*gray[i-w]-gray[i-w+1]+gray[i+w-1]+2*gray[i+w]+gray[i+w+1],edge=(Math.abs(gx)+Math.abs(gy))/4,edgeLimit=Math.max(14,p.edge*(f ? 0.72 : 1)-(f?Math.max(0,faceDetail)*2.2:0));if(edge>edgeLimit&&v<(f?228:196)&&v<local[i]+(f?22:17))black=true;out[i]=black?0:255}return out;
 }
 function cleanComponents(binary,mask,w,h,face,minArea,maxHole){
   const filter=(target,limit,fill,protectFace,onlyInside)=>{const seen=new Uint8Array(binary.length),q=new Int32Array(binary.length);for(let seed=0;seed<binary.length;seed++){if(binary[seed]!==target||seen[seed]||(onlyInside&&!mask[seed]))continue;let head=0,tail=0,protectedPart=false,touchesOutside=false;seen[seed]=1;q[tail++]=seed;while(head<tail){const i=q[head++],y=Math.floor(i/w),x=i-y*w;if(protectFace&&inFace(x,y,face))protectedPart=true;for(const n of[x?i-1:-1,x+1<w?i+1:-1,y?i-w:-1,y+1<h?i+w:-1]){if(n<0){touchesOutside=true;continue}if(onlyInside&&!mask[n]){touchesOutside=true;continue}if(binary[n]===target&&!seen[n]){seen[n]=1;q[tail++]=n}}}if(!protectedPart&&!touchesOutside&&tail<=limit)for(let j=0;j<tail;j++)binary[q[j]]=fill}};
@@ -340,7 +348,7 @@ function pureBinary(){if(!state.binary)return false;const d=ui.finalCanvas.getCo
 async function processMask(mask){
   setProgress(48,"قص ذكي محكم حول الشخص بدون فريم أبيض زائد…");await tick();const crop=cropPerson(mask);setProgress(57,"تحديد الوجه وحماية الملامح…");await tick();const face=await faceRect(crop),data=crop.source.getContext("2d",{willReadFrequently:true}).getImageData(0,0,crop.w,crop.h),gray=grayscale(data,crop.mask),p=currentPreset();
   setProgress(66,"توحيد الإضاءة داخل الشخص فقط…");await tick();const balanced=localMap(gray,crop.mask,crop.w,crop.h,clamp(Math.round(Math.min(crop.w,crop.h)*.035),16,72),true,p);
-  setProgress(77,"تحويل هجين مع تعزيز العين والفم والشعر…");await tick();let binary=binarize(balanced,crop.mask,crop.w,crop.h,face,p);setProgress(86,"تنظيف النويز والمكونات الصغيرة…");await tick();const f=Math.max(1,Math.round(crop.subject.area/900000));binary=cleanComponents(binary,crop.mask,crop.w,crop.h,face,p.noise*f,p.holes*f);
+  setProgress(77,"تحويل هجين مع تعزيز العين والفم والشعر…");await tick();let binary=binarize(balanced,crop.mask,crop.w,crop.h,face,p);setProgress(86,"تنظيف النويز والمكونات الصغيرة…");await tick();const q=qualitySettings(),f=Math.max(1,Math.round(crop.subject.area/900000)),noiseBoost=1+q.cleanup*.10+(10-q.faceDetail)*.035;binary=cleanComponents(binary,crop.mask,crop.w,crop.h,face,Math.round(p.noise*f*noiseBoost),Math.round(p.holes*f*(1+q.edgeSmooth*.04)));
   setProgress(92,"تحجيم الملف على مقاس EZCAD والـ DPI المختار…");await tick();const target=readTargetSize(crop.w,crop.h),sized=resizeBinaryNearest(binary,crop.w,crop.h,target.w,target.h),finalMask=resizeMaskNearest(crop.mask,crop.w,crop.h,target.w,target.h);Object.assign(state,{binary:sized,finalMask,width:target.w,height:target.h,face,inverted:false,sourceProcessSize:{w:crop.w,h:crop.h},exportMeta:{...target,material:ui.materialSelect?.value||"steel_photo"}});
   renderMask();renderFinal();if(!pureBinary())throw Error("Binary validation failed");setProgress(100,"جاهز لـ EZCAD — تم التحقق من اللونين والمقاس");ui.resultStats.hidden=false;ui.exportBar.hidden=false;ui.invertBtn.disabled=false;ui.sizeStat.textContent=`${target.w} × ${target.h} px`;ui.faceStat.textContent=face.detected?"تم اكتشاف الوجه وحماية ملامحه":"حماية الوجه التقديرية فعّالة";updateEzcadPanel();
 }
