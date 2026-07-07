@@ -81,7 +81,7 @@ const DEFAULT_DPI = 500;
 const DEFAULT_WIDTH_MM = 50;
 const PX_LIMIT = 6200;
 const $ = id => document.getElementById(id);
-const ui = Object.fromEntries(["modeHome","photoWorkspace","eyeWorkspace","fileInput","dropZone","fileMeta","photoEnhanceBtn","prepareBtn","eyeBtn","eyeFileInput","eyeDropZone","eyeFileMeta","eyeEnhanceBtn","eyeDetailRange","eyeNoiseRange","cleanupRange","edgeSmoothRange","faceDetailRange","blackStrengthRange","eyeEmpty","eyePreview","eyeOriginalCanvas","modelBadge","progressWrap","progressBar","progressText","manualPanel","brushSize","resetMaskBtn","applyMaskBtn","emptyState","previewGrid","originalCanvas","maskCanvas","finalCanvas","eyeCanvas","eyeCard","maskCanvasWrap","resultStats","exportBar","invertBtn","cutoutBtn","pngBtn","bmpBtn","txtBtn","svgBtn","pdfBtn","eyePngBtn","eyeSvgBtn","sizeStat","faceStat","exportPxStat","toast","materialSelect","targetWidth","targetHeight","dpiSelect","lineSpacePreview","lockRatio","materialName","powerVal","speedVal","frequencyVal","lineSpaceVal","dpiVal","loopVal","settingsNote"].map(id => [id, $(id)]));
+const ui = Object.fromEntries(["modeHome","photoWorkspace","eyeWorkspace","fileInput","dropZone","fileMeta","photoEnhanceBtn","prepareBtn","eyeBtn","eyeFileInput","eyeDropZone","eyeFileMeta","eyeEnhanceBtn","eyeDetailRange","eyeNoiseRange","cleanupRange","edgeSmoothRange","lightBalanceRange","faceDetailRange","blackStrengthRange","eyeEmpty","eyePreview","eyeOriginalCanvas","modelBadge","progressWrap","progressBar","progressText","manualPanel","brushSize","resetMaskBtn","applyMaskBtn","emptyState","previewGrid","originalCanvas","maskCanvas","finalCanvas","eyeCanvas","eyeCard","maskCanvasWrap","resultStats","exportBar","invertBtn","cutoutBtn","pngBtn","bmpBtn","txtBtn","svgBtn","pdfBtn","eyePngBtn","eyeSvgBtn","sizeStat","faceStat","exportPxStat","toast","materialSelect","targetWidth","targetHeight","dpiSelect","lineSpacePreview","lockRatio","materialName","powerVal","speedVal","frequencyVal","lineSpaceVal","dpiVal","loopVal","settingsNote"].map(id => [id, $(id)]));
 const state = { source:null, eyeSource:null, name:"portrait", eyeName:"eye", mask:null, alpha:null, cutout:null, finalMask:null, binary:null, eyeBinary:null, eyeWidth:0, eyeHeight:0, width:0, height:0, segmenter:null, faceLandmarker:null, mattingModel:null, upscaler:null, hfModule:null, hfPromise:null, mattingPromise:null, upscalePromise:null, vision:null, visionModule:null, modelPromise:null, facePromise:null, processing:false, inverted:false, manual:false, brushMode:"add", drawing:false, lastPoint:null, face:null, exportMeta:null, sourceProcessSize:null, toastTimer:0 };
 const clamp = (v,a,b) => Math.max(a,Math.min(b,v));
 const tick = () => new Promise(r => requestAnimationFrame(() => setTimeout(r,0)));
@@ -89,6 +89,7 @@ const currentPreset = () => PRESETS[document.querySelector('input[name="preset"]
 const qualitySettings = () => ({
   cleanup: clamp(parseInt(ui.cleanupRange?.value || 6,10) || 6,1,10),
   edgeSmooth: clamp(parseInt(ui.edgeSmoothRange?.value || 4,10) || 0,0,10),
+  lightBalance: clamp(parseInt(ui.lightBalanceRange?.value || 8,10) || 0,0,10),
   faceDetail: clamp(parseInt(ui.faceDetailRange?.value || 7,10) || 7,1,10),
   blackStrength: clamp(parseInt(ui.blackStrengthRange?.value || 5,10) || 5,1,10)
 });
@@ -281,7 +282,9 @@ function buildWhiteCutout(mask,alpha){
   const w=state.source.width,h=state.source.height,cm=mask,b=bounds(cm,w,h);if(!b)return null;
   const q=qualitySettings(),edgeR=q.edgeSmooth?Math.max(1,Math.round(q.edgeSmooth*Math.max(w,h)/5200)):0,core=edgeR?erode(cm,w,h,edgeR):cm;
   const m=Math.max(1,Math.round(Math.max(b.w,b.h)*.012)),sx=Math.max(0,b.x-m),sy=Math.max(0,b.y-m),ex=Math.min(w,b.x+b.w+m),ey=Math.min(h,b.y+b.h+m),ow=ex-sx,oh=ey-sy,c=makeCanvas(ow,oh),ctx=c.getContext("2d",{alpha:false,willReadFrequently:true});
-  ctx.fillStyle="white";ctx.fillRect(0,0,ow,oh);ctx.drawImage(state.source,sx,sy,ow,oh,0,0,ow,oh);const im=ctx.getImageData(0,0,ow,oh),d=im.data;
+  ctx.fillStyle="white";ctx.fillRect(0,0,ow,oh);ctx.drawImage(state.source,sx,sy,ow,oh,0,0,ow,oh);const im=ctx.getImageData(0,0,ow,oh),d=im.data,cropMask=new Uint8Array(ow*oh);
+  for(let y=0;y<oh;y++)for(let x=0;x<ow;x++){const si=(y+sy)*w+x+sx;if(cm[si])cropMask[y*ow+x]=1}
+  balanceColorImageData(im,cropMask,ow,oh,q.lightBalance); 
   for(let y=0;y<oh;y++)for(let x=0;x<ow;x++){const si=(y+sy)*w+x+sx,p=(y*ow+x)*4;if(!cm[si])d[p]=d[p+1]=d[p+2]=255;else if(edgeR&&!core[si]){const k=.06+q.edgeSmooth*.018;d[p]=clamp(Math.round(d[p]*(1-k)+255*k),0,255);d[p+1]=clamp(Math.round(d[p+1]*(1-k)+255*k),0,255);d[p+2]=clamp(Math.round(d[p+2]*(1-k)+255*k),0,255)}d[p+3]=255}
   ctx.putImageData(im,0,0);return c;
 }
@@ -324,6 +327,30 @@ function localMap(gray,mask,w,h,r,normalize,p){
   for(let y=0;y<h;y++){const row=y*w;let sum=0,count=0;for(let x=0;x<=Math.min(w-1,r);x++)if(mask[row+x]){sum+=gray[row+x];count++}for(let x=0;x<w;x++){rs[row+x]=sum;rc[row+x]=count;const a=x+r+1,s=x-r;if(a<w&&mask[row+a]){sum+=gray[row+a];count++}if(s>=0&&mask[row+s]){sum-=gray[row+s];count--}}}
   for(let x=0;x<w;x++){let sum=0,count=0;for(let y=0;y<=Math.min(h-1,r);y++){sum+=rs[y*w+x];count+=rc[y*w+x]}for(let y=0;y<h;y++){const i=y*w+x,mean=count?sum/count:255;if(normalize&&mask[i]){const corrected=132+(gray[i]-mean)*p.contrast;out[i]=clamp(Math.round(corrected*(1-p.tone)+gray[i]*p.tone),0,255)}else out[i]=normalize?255:clamp(Math.round(mean),0,255);const a=y+r+1,s=y-r;if(a<h){sum+=rs[a*w+x];count+=rc[a*w+x]}if(s>=0){sum-=rs[s*w+x];count-=rc[s*w+x]}}}return out;
 }
+function grayPercentiles(gray,mask,lo=.02,hi=.985){
+  const hist=new Uint32Array(256);let total=0;
+  for(let i=0;i<gray.length;i++)if(mask[i]){hist[gray[i]]++;total++}
+  if(!total)return{lo:0,hi:255,mean:132};
+  let acc=0,lv=-1,hv=255,sum=0,loN=total*lo,hiN=total*hi;
+  for(let v=0;v<256;v++){const c=hist[v];sum+=v*c;acc+=c;if(acc>=loN&&lv<0)lv=v;if(acc>=hiN){hv=v;break}}
+  if(lv<0)lv=0;
+  return{lo:lv,hi:Math.max(hv,lv+16),mean:sum/total};
+}
+function autoLightGray(gray,mask,w,h,face,p){
+  const q=qualitySettings(),s=q.lightBalance/10;if(s<=0)return localMap(gray,mask,w,h,clamp(Math.round(Math.min(w,h)*.035),16,72),true,p);
+  const r=clamp(Math.round(Math.min(w,h)*(.055+s*.045)),22,150),local=localMap(gray,mask,w,h,r,false,p),stats=grayPercentiles(gray,mask,.018,.988),target=clamp(stats.mean<118?138:stats.mean>168?148:144,134,152),tmp=new Uint8Array(gray.length);tmp.fill(255);
+  for(let i=0;i<gray.length;i++)if(mask[i]){let v=gray[i]+(target-local[i])*(.66*s);if(v<96)v+=(96-v)*(.34*s);if(v>214)v-=(v-214)*(.30*s);if(inFace(i%w,Math.floor(i/w),face)){v=gray[i]*(1-.72*s)+v*(.72*s)}tmp[i]=clamp(Math.round(v),0,255)}
+  const st=grayPercentiles(tmp,mask,.025,.975),out=new Uint8Array(gray.length);out.fill(255);const stretch=.30+.42*s;
+  for(let i=0;i<gray.length;i++)if(mask[i]){const v=tmp[i],nv=clamp((v-st.lo)/(st.hi-st.lo)*230+12,0,255);out[i]=clamp(Math.round(v*(1-stretch)+nv*stretch),0,255)}
+  return out;
+}
+function balanceColorImageData(im,mask,w,h,amount){
+  const s=clamp(amount/10,0,1);if(s<=0)return im;const d=im.data,gray=new Uint8Array(mask.length);
+  for(let i=0,p=0;i<mask.length;i++,p+=4)gray[i]=mask[i]?Math.round(d[p]*.2126+d[p+1]*.7152+d[p+2]*.0722):255;
+  const r=clamp(Math.round(Math.min(w,h)*(.06+s*.04)),18,120),local=localMap(gray,mask,w,h,r,false,PRESETS.portrait),stats=grayPercentiles(gray,mask,.02,.985),target=clamp(stats.mean<120?142:stats.mean>168?150:146,138,154);
+  for(let i=0,p=0;i<mask.length;i++,p+=4)if(mask[i]){const lum=Math.max(1,gray[i]),gain=clamp((target/Math.max(30,local[i]))**(.50*s),.72,1.45),lift=lum<92?(92-lum)*.18*s:0,hold=lum>218?(lum-218)*.16*s:0,contrast=1+.05*s;for(let c=0;c<3;c++){const orig=d[p+c],v=((orig-128)*contrast+128)*gain+lift-hold;d[p+c]=clamp(Math.round(orig*(1-.78*s)+v*(.78*s)),0,255)}}
+  return im;
+}
 function otsu(gray,mask){const hist=new Uint32Array(256);let total=0,sum=0;for(let i=0;i<gray.length;i++)if(mask[i]){hist[gray[i]]++;total++;sum+=gray[i]}let wb=0,sb=0,best=-1,t0=128;for(let t=0;t<256;t++){wb+=hist[t];if(!wb)continue;const wf=total-wb;if(!wf)break;sb+=t*hist[t];const v=wb*wf*(sb/wb-(sum-sb)/wf)**2;if(v>best){best=v;t0=t}}return clamp(t0,72,190)}
 const inFace=(x,y,f)=>f&&x>=f.x&&y>=f.y&&x<f.x+f.w&&y<f.y+f.h;
 function binarize(gray,mask,w,h,face,p){
@@ -347,7 +374,7 @@ function pureBinary(){if(!state.binary)return false;const d=ui.finalCanvas.getCo
 
 async function processMask(mask){
   setProgress(48,"قص ذكي محكم حول الشخص بدون فريم أبيض زائد…");await tick();const crop=cropPerson(mask);setProgress(57,"تحديد الوجه وحماية الملامح…");await tick();const face=await faceRect(crop),data=crop.source.getContext("2d",{willReadFrequently:true}).getImageData(0,0,crop.w,crop.h),gray=grayscale(data,crop.mask),p=currentPreset();
-  setProgress(66,"توحيد الإضاءة داخل الشخص فقط…");await tick();const balanced=localMap(gray,crop.mask,crop.w,crop.h,clamp(Math.round(Math.min(crop.w,crop.h)*.035),16,72),true,p);
+  setProgress(66,"توزيع الإضاءة تلقائيًا وإزالة الظلال داخل الشخص…");await tick();const balanced=autoLightGray(gray,crop.mask,crop.w,crop.h,face,p);
   setProgress(77,"تحويل هجين مع تعزيز العين والفم والشعر…");await tick();let binary=binarize(balanced,crop.mask,crop.w,crop.h,face,p);setProgress(86,"تنظيف النويز والمكونات الصغيرة…");await tick();const q=qualitySettings(),f=Math.max(1,Math.round(crop.subject.area/900000)),noiseBoost=1+q.cleanup*.10+(10-q.faceDetail)*.035;binary=cleanComponents(binary,crop.mask,crop.w,crop.h,face,Math.round(p.noise*f*noiseBoost),Math.round(p.holes*f*(1+q.edgeSmooth*.04)));
   setProgress(92,"تحجيم الملف على مقاس EZCAD والـ DPI المختار…");await tick();const target=readTargetSize(crop.w,crop.h),sized=resizeBinaryNearest(binary,crop.w,crop.h,target.w,target.h),finalMask=resizeMaskNearest(crop.mask,crop.w,crop.h,target.w,target.h);Object.assign(state,{binary:sized,finalMask,width:target.w,height:target.h,face,inverted:false,sourceProcessSize:{w:crop.w,h:crop.h},exportMeta:{...target,material:ui.materialSelect?.value||"steel_photo"}});
   renderMask();renderFinal();if(!pureBinary())throw Error("Binary validation failed");setProgress(100,"جاهز لـ EZCAD — تم التحقق من اللونين والمقاس");ui.resultStats.hidden=false;ui.exportBar.hidden=false;ui.invertBtn.disabled=false;ui.sizeStat.textContent=`${target.w} × ${target.h} px`;ui.faceStat.textContent=face.detected?"تم اكتشاف الوجه وحماية ملامحه":"حماية الوجه التقديرية فعّالة";updateEzcadPanel();
