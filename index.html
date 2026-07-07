@@ -33,7 +33,7 @@
         <button class="mode-card photo-mode" data-mode="photo">
           <span class="mode-number">01</span>
           <span class="mode-icon person-icon"><i></i></span>
-          <span class="mode-copy"><b>حفر صورة</b><small>ارفع صورة شخص · عزل AI · خلفية شفافة · أبيض وأسود</small></span>
+          <span class="mode-copy"><b>حفر صورة</b><small>ارفع صورة شخص · عزل AI · خلفية بيضاء مقصوصة · أبيض وأسود</small></span>
           <span class="mode-go">ابدأ الآن ←</span>
         </button>
         <button class="mode-card eye-mode" data-mode="eye">
@@ -44,7 +44,7 @@
         </button>
       </div>
       <div class="feature-strip">
-        <span>MODNet عزل احترافي</span><span>Swin2SR تحسين AI مجاني</span><span>PNG شفاف</span><span>SVG + BMP</span>
+        <span>MODNet عزل احترافي</span><span>Swin2SR تحسين AI مجاني</span><span>PNG أبيض مقصوص</span><span>SVG + BMP</span>
       </div>
     </section>
 
@@ -116,15 +116,15 @@
             <div class="view-tabs"><button class="view-tab active" data-view="all">الكل</button><button class="view-tab" data-view="original">الأصل</button><button class="view-tab" data-view="mask">العزل</button><button class="view-tab" data-view="final">الحفر</button></div>
             <button id="invertBtn" class="invert-btn" disabled>◐ عكس الأسود والأبيض</button>
           </div>
-          <div id="emptyState" class="empty-state"><span class="empty-orb">م</span><h3>ارفع صورة الشخص</h3><p>سيظهر الأصل، العزل الشفاف، ونتيجة الحفر هنا.</p></div>
+          <div id="emptyState" class="empty-state"><span class="empty-orb">م</span><h3>ارفع صورة الشخص</h3><p>سيظهر الأصل، العزل على أبيض، ونتيجة الحفر هنا.</p></div>
           <div id="previewGrid" class="preview-grid" hidden>
-            <article class="preview-card" data-card="original"><header><b>الصورة الأصلية</b><small>ORIGINAL</small></header><div class="canvas-wrap checker"><canvas id="originalCanvas"></canvas></div></article>
-            <article class="preview-card" data-card="mask"><header><b>العزل الشفاف</b><small>AI CUTOUT</small></header><div id="maskCanvasWrap" class="canvas-wrap checker"><canvas id="maskCanvas"></canvas></div></article>
-            <article class="preview-card final-card" data-card="final"><header><b>نتيجة الحفر</b><small>PURE B/W</small></header><div class="canvas-wrap checker"><canvas id="finalCanvas"></canvas></div></article>
+            <article class="preview-card" data-card="original"><header><b>الصورة الأصلية</b><small>ORIGINAL</small></header><div class="canvas-wrap"><canvas id="originalCanvas"></canvas></div></article>
+            <article class="preview-card" data-card="mask"><header><b>العزل على أبيض</b><small>AI CUTOUT</small></header><div id="maskCanvasWrap" class="canvas-wrap"><canvas id="maskCanvas"></canvas></div></article>
+            <article class="preview-card final-card" data-card="final"><header><b>نتيجة الحفر</b><small>PURE B/W</small></header><div class="canvas-wrap"><canvas id="finalCanvas"></canvas></div></article>
           </div>
           <div id="resultStats" class="result-stats" hidden><span>أسود وأبيض فقط</span><span id="sizeStat">—</span><span id="faceStat">حماية الوجه</span><span id="exportPxStat">—</span></div>
           <div id="exportBar" class="export-bar" hidden>
-            <button id="cutoutBtn"><span>PNG</span> الشخص شفاف</button><button id="pngBtn"><span>PNG</span> الحفر شفاف</button><button id="bmpBtn" class="main-export"><span>BMP</span> EZCAD</button><button id="svgBtn"><span>SVG</span> فيكتور</button><button id="pdfBtn"><span>PDF</span> طباعة</button><button id="txtBtn"><span>TXT</span> الإعدادات</button>
+            <button id="cutoutBtn"><span>PNG</span> الشخص فقط أبيض</button><button id="pngBtn"><span>PNG</span> الحفر أبيض</button><button id="bmpBtn" class="main-export"><span>BMP</span> EZCAD</button><button id="svgBtn"><span>SVG</span> فيكتور</button><button id="pdfBtn"><span>PDF</span> طباعة</button><button id="txtBtn"><span>TXT</span> الإعدادات</button>
           </div>
         </section>
       </div>
@@ -153,10 +153,10 @@
         <section class="eye-preview-area">
           <div id="eyeEmpty" class="empty-state"><span class="empty-eye">◉</span><h3>اختر صورة العين</h3><p>ستُقص التفاصيل تلقائيًا بأكبر قدر ممكن.</p></div>
           <div id="eyePreview" class="eye-preview-grid" hidden>
-            <article class="preview-card"><header><b>صورة العين الأصلية</b><small>EYE SOURCE</small></header><div class="canvas-wrap checker"><canvas id="eyeOriginalCanvas"></canvas></div></article>
-            <article id="eyeCard" class="preview-card final-card"><header><b>رسمة العين للحفر</b><small>EYE ENGRAVE</small></header><div class="canvas-wrap checker"><canvas id="eyeCanvas"></canvas></div></article>
+            <article class="preview-card"><header><b>صورة العين الأصلية</b><small>EYE SOURCE</small></header><div class="canvas-wrap"><canvas id="eyeOriginalCanvas"></canvas></div></article>
+            <article id="eyeCard" class="preview-card final-card"><header><b>رسمة العين للحفر</b><small>EYE ENGRAVE</small></header><div class="canvas-wrap"><canvas id="eyeCanvas"></canvas></div></article>
           </div>
-          <div class="export-bar eye-export-bar"><button id="eyePngBtn" disabled><span>PNG</span> عين شفافة</button><button id="eyeSvgBtn" disabled><span>SVG</span> فيكتور العين</button></div>
+          <div class="export-bar eye-export-bar"><button id="eyePngBtn" disabled><span>PNG</span> عين على أبيض</button><button id="eyeSvgBtn" disabled><span>SVG</span> فيكتور العين</button></div>
         </section>
       </div>
     </section>
