@@ -8,7 +8,7 @@ https://github.com/fawakhry/fiber-auto-max-ezcad
 https://fawakhry.github.io/fiber-auto-max-ezcad/version.json
 
 عند إصدار تحديث جديد:
-1) غيّر APP_VERSION في أول app.js.
+1) غيّر APP_VERSION في أول app.js أو app.v561.js حسب اسم ملف التشغيل الحالي.
 2) غيّر أرقام ?v= في index.html.
 3) غيّر version وnotes داخل version.json.
 4) ارفع كل الملفات إلى فرع main في GitHub.
@@ -20,3 +20,6 @@ https://fawakhry.github.io/fiber-auto-max-ezcad/version.json
 ملاحظة:
 النسخة الحالية تعمل كبرنامج متصفح محلي، لذلك التحديث الآمن هو فحص ثم تحميل النسخة الجديدة.
 التثبيت الصامت التلقائي يحتاج لاحقًا تحويل البرنامج إلى تطبيق Desktop موقّع.
+
+ملاحظة V5.6.1:
+تم استخدام أسماء ملفات جديدة لكسر الكاش. عند أي تحديث كبير لاحقًا غيّر اسم ملف app أو رقم ?v= بقوة حتى لا تبقى نسخة العميل القديمة في المتصفح.

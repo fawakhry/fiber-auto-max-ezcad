@@ -1,6 +1,6 @@
 {
-  "version": "5.6.0",
-  "title": "مطبعجي فايبر ليزر V5.6",
-  "notes": "اختيار صورة وجه كاملة مع قص العين تلقائيًا أو عين مقصوصة، كثافة حفر خفيفة للجلد، وإرشادات EZCAD لمنع المعالجة المزدوجة.",
+  "version": "5.6.1",
+  "title": "مطبعجي فايبر ليزر V5.6.1",
+  "notes": "تحديث كسر الكاش: ملفات app/styles/update-config بأسماء جديدة حتى لا يفتح GitHub Pages أو المتصفح النسخة القديمة، مع الحفاظ على قص العين التلقائي وإعدادات EZCAD.",
   "downloadUrl": "https://github.com/fawakhry/fiber-auto-max-ezcad/archive/refs/heads/main.zip"
 }
