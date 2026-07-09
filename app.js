@@ -1,3 +1,5 @@
+const APP_VERSION = "5.6.0";
+const DEMO_MODE = new URLSearchParams(location.search).get("demo") === "1";
 const MP_VERSION = "0.10.35";
 const MP_MODULE = `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MP_VERSION}/vision_bundle.mjs`;
 const MP_WASM = `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MP_VERSION}/wasm`;
@@ -16,6 +18,16 @@ const PRESETS = {
 };
 
 const MATERIALS = {
+  leather_wallet: {
+    title: "جلد محفظة فاتح — اختبار فايبر 30W",
+    power: "ابدأ 8–18%",
+    speed: "1200–2500 mm/s",
+    frequency: "40–60 kHz",
+    line: "0.05–0.08 mm",
+    dpi: "333–500",
+    loop: "1",
+    note: "قيم بداية حذرة فقط لأن الجلد يختلف جدًا. اختبر مربعًا صغيرًا من نفس الخامة، وارفع الطاقة تدريجيًا. ممنوع حفر PVC أو جلد صناعي مجهول، واستخدم شفط أبخرة قوي."
+  },
   steel_photo: {
     title: "ستانلس / ميدالية — صورة ناعمة",
     power: "35–50%",
@@ -81,7 +93,7 @@ const DEFAULT_DPI = 500;
 const DEFAULT_WIDTH_MM = 50;
 const PX_LIMIT = 6200;
 const $ = id => document.getElementById(id);
-const ui = Object.fromEntries(["modeHome","photoWorkspace","eyeWorkspace","fileInput","dropZone","fileMeta","photoEnhanceBtn","prepareBtn","eyeBtn","eyeFileInput","eyeDropZone","eyeFileMeta","eyeEnhanceBtn","eyeDetailRange","eyeNoiseRange","cleanupRange","edgeSmoothRange","lightBalanceRange","faceDetailRange","blackStrengthRange","eyeEmpty","eyePreview","eyeOriginalCanvas","modelBadge","progressWrap","progressBar","progressText","manualPanel","brushSize","resetMaskBtn","applyMaskBtn","emptyState","previewGrid","originalCanvas","maskCanvas","finalCanvas","eyeCanvas","eyeCard","maskCanvasWrap","resultStats","exportBar","invertBtn","cutoutBtn","pngBtn","bmpBtn","txtBtn","svgBtn","pdfBtn","eyePngBtn","eyeSvgBtn","sizeStat","faceStat","exportPxStat","toast","materialSelect","targetWidth","targetHeight","dpiSelect","lineSpacePreview","lockRatio","materialName","powerVal","speedVal","frequencyVal","lineSpaceVal","dpiVal","loopVal","settingsNote"].map(id => [id, $(id)]));
+const ui = Object.fromEntries(["modeHome","photoWorkspace","eyeWorkspace","fileInput","dropZone","fileMeta","photoEnhanceBtn","prepareBtn","eyeBtn","eyeFileInput","eyeDropZone","eyeDropTitle","eyeDropHint","eyeFileMeta","eyeEnhanceBtn","eyeStyleSelect","eyeDensitySelect","eyeDetailRange","eyeFadeRange","eyeNoiseRange","eyeWidthMm","eyeDpiSelect","eyeEzcadDpi","cleanupRange","edgeSmoothRange","lightBalanceRange","faceDetailRange","blackStrengthRange","eyeEmpty","eyePreview","eyeOriginalCanvas","modelBadge","progressWrap","progressBar","progressText","manualPanel","brushSize","resetMaskBtn","applyMaskBtn","emptyState","previewGrid","originalCanvas","maskCanvas","finalCanvas","eyeCanvas","eyeCard","maskCanvasWrap","resultStats","exportBar","invertBtn","cutoutBtn","pngBtn","bmpBtn","txtBtn","svgBtn","pdfBtn","eyePngBtn","eyeSvgBtn","sizeStat","faceStat","exportPxStat","toast","materialSelect","targetWidth","targetHeight","dpiSelect","lineSpacePreview","lockRatio","materialName","powerVal","speedVal","frequencyVal","lineSpaceVal","dpiVal","loopVal","settingsNote","demoBanner","versionLabel","updateBtn","updatePanel","closeUpdateBtn","updateTitle","updateStatus","updateDownloadLink"].map(id => [id, $(id)]));
 const state = { source:null, eyeSource:null, name:"portrait", eyeName:"eye", mask:null, alpha:null, cutout:null, finalMask:null, binary:null, eyeBinary:null, eyeWidth:0, eyeHeight:0, width:0, height:0, segmenter:null, faceLandmarker:null, mattingModel:null, upscaler:null, hfModule:null, hfPromise:null, mattingPromise:null, upscalePromise:null, vision:null, visionModule:null, modelPromise:null, facePromise:null, processing:false, inverted:false, manual:false, brushMode:"add", drawing:false, lastPoint:null, face:null, exportMeta:null, sourceProcessSize:null, toastTimer:0 };
 const clamp = (v,a,b) => Math.max(a,Math.min(b,v));
 const tick = () => new Promise(r => requestAnimationFrame(() => setTimeout(r,0)));
@@ -93,6 +105,14 @@ const qualitySettings = () => ({
   faceDetail: clamp(parseInt(ui.faceDetailRange?.value || 7,10) || 7,1,10),
   blackStrength: clamp(parseInt(ui.blackStrengthRange?.value || 5,10) || 5,1,10)
 });
+const currentEyeSourceMode=()=>document.querySelector('input[name="eyeSourceMode"]:checked')?.value||"full";
+function updateEyeInputUI(){
+  const full=currentEyeSourceMode()==="full";
+  if(ui.eyeDropTitle)ui.eyeDropTitle.textContent=full?"اختر صورة الوجه كاملة":"اختر صورة العين المقصوصة";
+  if(ui.eyeDropHint)ui.eyeDropHint.textContent=full?"البرنامج سيكتشف العينين ويقصهما تلقائيًا":"ارفع العين أو العينين بعد قصهما يدويًا";
+  if(ui.eyeEzcadDpi){const dpi=+ui.eyeDpiSelect?.value||300;ui.eyeEzcadDpi.textContent=`${dpi} × ${dpi}`}
+  document.querySelectorAll(".eye-source-choice label").forEach(label=>label.classList.toggle("active",!!label.querySelector("input:checked")));
+}
 
 const currentMaterial = () => MATERIALS[ui.materialSelect?.value || "steel_photo"] || MATERIALS.steel_photo;
 const getDpi = () => clamp(parseInt(ui.dpiSelect?.value || DEFAULT_DPI,10) || DEFAULT_DPI,300,800);
@@ -138,7 +158,7 @@ function updateEzcadPanel(){
 function buildSettingsText(){
   const mat=currentMaterial(),meta=state.exportMeta||readTargetSize(state.width||100,state.height||140);
   return [
-    "Fiber Auto Max V4 — EZCAD 30W Settings",
+    `Matbaagy Fiber Laser V${APP_VERSION} — EZCAD 30W Settings`,
     `File: ${state.name || "portrait"}`,
     `Material: ${mat.title}`,
     `Export size: ${state.width||meta.w} × ${state.height||meta.h} px`,
@@ -165,6 +185,42 @@ function buildSettingsText(){
 
 
 function showToast(message,error=false){clearTimeout(state.toastTimer);ui.toast.textContent=message;ui.toast.className=`toast show${error?" error":""}`;state.toastTimer=setTimeout(()=>ui.toast.className="toast",3400)}
+function demoGuard(){
+  if(!DEMO_MODE)return false;
+  showToast("النسخة التجريبية للمعاينة فقط. التصدير متاح بعد شراء النسخة الكاملة.",true);
+  return true;
+}
+function compareVersions(a,b){
+  const pa=String(a).split(".").map(n=>parseInt(n,10)||0),pb=String(b).split(".").map(n=>parseInt(n,10)||0);
+  for(let i=0;i<Math.max(pa.length,pb.length);i++){const d=(pa[i]||0)-(pb[i]||0);if(d)return d}
+  return 0;
+}
+function openUpdatePanel(){if(ui.updatePanel)ui.updatePanel.hidden=false}
+function closeUpdatePanel(){if(ui.updatePanel)ui.updatePanel.hidden=true}
+async function checkForUpdates(){
+  openUpdatePanel();ui.updateDownloadLink.hidden=true;ui.updateTitle.textContent="فحص تحديث البرنامج";ui.updateStatus.textContent="جاري الاتصال بمصدر التحديثات…";ui.updateBtn.disabled=true;
+  try{
+    const configured=window.MATBAAGY_CONFIG?.updateManifest||"version.json";
+    if(location.protocol==="file:"&&!/^https?:\/\//i.test(configured)){
+      ui.updateTitle.textContent="مركز التحديث جاهز";
+      ui.updateStatus.textContent="قبل إرسال النسخة للعملاء، ضع رابط version.json المنشور على GitHub Pages داخل ملف update-config.js. بعدها كل نسخة مباعة ستفحص التحديث بضغطة واحدة.";
+      return;
+    }
+    const url=new URL(configured,location.href);url.searchParams.set("_",Date.now());
+    const response=await fetch(url,{cache:"no-store"});if(!response.ok)throw Error(`HTTP ${response.status}`);
+    const info=await response.json(),latest=String(info.version||"0.0.0");
+    if(compareVersions(latest,APP_VERSION)>0){
+      ui.updateTitle.textContent=`تحديث جديد V${latest}`;
+      ui.updateStatus.textContent=info.notes||"نسخة أحدث من مطبعجي فايبر ليزر متاحة الآن.";
+      if(info.downloadUrl){ui.updateDownloadLink.href=new URL(info.downloadUrl,url).href;ui.updateDownloadLink.hidden=false}
+    }else{
+      ui.updateTitle.textContent="أنت على أحدث نسخة";
+      ui.updateStatus.textContent=`الإصدار V${APP_VERSION} مثبت ويعمل بأحدث معالجة متاحة.`;
+    }
+  }catch(e){
+    console.warn("Update check",e);ui.updateTitle.textContent="تعذر فحص التحديث الآن";ui.updateStatus.textContent="تأكد من الإنترنت أو من رابط التحديث في update-config.js ثم جرّب مرة أخرى.";
+  }finally{ui.updateBtn.disabled=false}
+}
 function modelStatus(s,t){ui.modelBadge.dataset.state=s;ui.modelBadge.querySelector("span").textContent=t}
 function setProgress(n,t){ui.progressWrap.hidden=false;ui.progressBar.style.width=`${clamp(n,0,100)}%`;ui.progressText.textContent=t}
 function endProgress(){setTimeout(()=>{if(!state.processing)ui.progressWrap.hidden=true},900)}
@@ -391,18 +447,18 @@ function pointFromEvent(e){const r=ui.maskCanvas.getBoundingClientRect();return{
 function paint(point){const w=state.source.width,h=state.source.height,r=+ui.brushSize.value*Math.max(w,h)/1200,from=state.lastPoint||point,dist=Math.hypot(point.x-from.x,point.y-from.y),steps=Math.max(1,Math.ceil(dist/Math.max(2,r*.35)));for(let s=0;s<=steps;s++){const t=s/steps,cx=from.x+(point.x-from.x)*t,cy=from.y+(point.y-from.y)*t,rr=r*r;for(let y=Math.max(0,Math.floor(cy-r));y<=Math.min(h-1,Math.ceil(cy+r));y++)for(let x=Math.max(0,Math.floor(cx-r));x<=Math.min(w-1,Math.ceil(cx+r));x++)if((x-cx)**2+(y-cy)**2<=rr)state.mask[y*w+x]=state.brushMode==="add"?1:0}state.lastPoint=point}
 function switchView(view){ui.previewGrid.dataset.view=view;document.querySelectorAll(".view-tab").forEach(b=>b.classList.toggle("active",b.dataset.view===view))}
 function download(blob,ext){const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`${state.name}-fiber-30w.${ext}`;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1500)}
-function exportCutoutPNG(){if(state.cutout)state.cutout.toBlob(b=>{if(b){const old=state.name;state.name=`${old}-white-cutout`;download(b,"png");state.name=old;showToast("تم تصدير الشخص فقط بخلفية بيضاء وبدون فريم زائد.")}},"image/png")}
-function exportPNG(){if(state.binary)ui.finalCanvas.toBlob(b=>{if(b){download(b,"png");showToast("تم تصدير PNG للحفر بخلفية بيضاء ثابتة.")}},"image/png")}
+function exportCutoutPNG(){if(demoGuard())return;if(state.cutout)state.cutout.toBlob(b=>{if(b){const old=state.name;state.name=`${old}-white-cutout`;download(b,"png");state.name=old;showToast("تم تصدير الشخص فقط بخلفية بيضاء وبدون فريم زائد.")}},"image/png")}
+function exportPNG(){if(demoGuard())return;if(state.binary)ui.finalCanvas.toBlob(b=>{if(b){download(b,"png");showToast("تم تصدير PNG للحفر بخلفية بيضاء ثابتة.")}},"image/png")}
 function encodeBMP(canvas){
   const w=canvas.width,h=canvas.height,ctx=canvas.getContext("2d",{willReadFrequently:true}),data=ctx.getImageData(0,0,w,h).data,rowSize=Math.ceil((w*3)/4)*4,pixelSize=rowSize*h,fileSize=54+pixelSize,buf=new ArrayBuffer(fileSize),dv=new DataView(buf),bytes=new Uint8Array(buf);
   dv.setUint16(0,0x4D42,true);dv.setUint32(2,fileSize,true);dv.setUint32(10,54,true);dv.setUint32(14,40,true);dv.setInt32(18,w,true);dv.setInt32(22,h,true);dv.setUint16(26,1,true);dv.setUint16(28,24,true);dv.setUint32(34,pixelSize,true);dv.setInt32(38,2835,true);dv.setInt32(42,2835,true);
   let offset=54;for(let y=h-1;y>=0;y--){const row=y*w*4;for(let x=0;x<w;x++){const i=row+x*4;bytes[offset++]=data[i+2];bytes[offset++]=data[i+1];bytes[offset++]=data[i]}while((offset-54)%rowSize!==0)bytes[offset++]=0}
   return new Blob([buf],{type:"image/bmp"});
 }
-function exportBMP(){if(!state.binary)return;download(encodeBMP(ui.finalCanvas),"bmp");showToast("تم تصدير BMP مباشر للإدخال في EZCAD.")}
-function exportSettingsTXT(){download(new Blob([buildSettingsText()],{type:"text/plain;charset=utf-8"}),"txt");showToast("تم تصدير ملف إعدادات EZCAD.")}
+function exportBMP(){if(demoGuard()||!state.binary)return;download(encodeBMP(ui.finalCanvas),"bmp");showToast("تم تصدير BMP مباشر للإدخال في EZCAD.")}
+function exportSettingsTXT(){if(demoGuard())return;download(new Blob([buildSettingsText()],{type:"text/plain;charset=utf-8"}),"txt");showToast("تم تصدير ملف إعدادات EZCAD.")}
 function svgPath(){const done=[];let active=new Map();for(let y=0;y<state.height;y++){const runs=[];let start=-1;for(let x=0;x<=state.width;x++){const i=y*state.width+x,black=x<state.width&&state.finalMask?.[i]&&(state.inverted?state.binary[i]===255:state.binary[i]===0);if(black&&start<0)start=x;if(!black&&start>=0){runs.push([start,x-start]);start=-1}}const next=new Map();for(const[x,w]of runs){const key=`${x}:${w}`,r=active.get(key)||{x,y,w,h:0};r.h++;next.set(key,r)}for(const[k,r]of active)if(!next.has(k))done.push(r);active=next}done.push(...active.values());return done.map(r=>`M${r.x} ${r.y}h${r.w}v${r.h}h-${r.w}Z`).join("")}
-function exportSVG(){if(!state.binary)return;setProgress(30,"بناء مسارات SVG…");setTimeout(()=>{try{const svg=`<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" width="${state.width}" height="${state.height}" viewBox="0 0 ${state.width} ${state.height}"><rect width="100%" height="100%" fill="white"/><path d="${svgPath()}" fill="black"/></svg>`;download(new Blob([svg],{type:"image/svg+xml"}),"svg");setProgress(100,"تم إنشاء SVG vector-style");showToast("تم تصدير SVG بخلفية بيضاء ثابتة.")}catch(e){console.error(e);showToast("تعذر إنشاء SVG.",true)}endProgress()},30)}
+function exportSVG(){if(demoGuard()||!state.binary)return;setProgress(30,"بناء مسارات SVG…");setTimeout(()=>{try{const svg=`<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" width="${state.width}" height="${state.height}" viewBox="0 0 ${state.width} ${state.height}"><rect width="100%" height="100%" fill="white"/><path d="${svgPath()}" fill="black"/></svg>`;download(new Blob([svg],{type:"image/svg+xml"}),"svg");setProgress(100,"تم إنشاء SVG vector-style");showToast("تم تصدير SVG بخلفية بيضاء ثابتة.")}catch(e){console.error(e);showToast("تعذر إنشاء SVG.",true)}endProgress()},30)}
 
 const LEFT_EYE=[33,7,163,144,145,153,154,155,133,173,157,158,159,160,161,246];
 const RIGHT_EYE=[362,382,381,380,374,373,390,249,263,466,388,387,386,385,384,398];
@@ -411,6 +467,16 @@ const RIGHT_BROW=[300,293,334,296,336,285,295,282,283,276];
 const LEFT_IRIS=[468,469,470,471,472],RIGHT_IRIS=[473,474,475,476,477];
 function pointBounds(points,ids){const good=ids.map(i=>points[i]).filter(Boolean);if(!good.length)return null;const xs=good.map(p=>p.x),ys=good.map(p=>p.y);return{x:Math.min(...xs),y:Math.min(...ys),w:Math.max(...xs)-Math.min(...xs),h:Math.max(...ys)-Math.min(...ys)}}
 function drawLandmarkLine(ctx,points,ids,sx,sy,closed=true){const good=ids.map(i=>points[i]).filter(Boolean);if(good.length<2)return;ctx.beginPath();ctx.moveTo(good[0].x-sx,good[0].y-sy);for(let i=1;i<good.length;i++)ctx.lineTo(good[i].x-sx,good[i].y-sy);if(closed)ctx.closePath();ctx.stroke()}
+async function cropEyesFromFullImage(source){
+  modelStatus("loading","اكتشاف الوجه وقص العينين تلقائيًا…");
+  const detector=await ensureFaceLandmarker(),result=detector.detect(source),landmarks=result?.faceLandmarks?.[0];
+  if(!landmarks?.length)throw Error("FULL_FACE_NOT_FOUND");
+  const sw=source.width,sh=source.height,points=landmarks.map(p=>({x:p.x*sw,y:p.y*sh})),ids=[...LEFT_EYE,...RIGHT_EYE,...LEFT_BROW,...RIGHT_BROW,...LEFT_IRIS,...RIGHT_IRIS],b=pointBounds(points,ids);
+  if(!b||b.w<20||b.h<8)throw Error("EYE_CROP_NOT_FOUND");
+  const side=Math.max(10,b.w*.10),top=Math.max(10,b.h*.42),bottom=Math.max(10,b.h*.58),sx=clamp(Math.floor(b.x-side),0,sw-1),sy=clamp(Math.floor(b.y-top),0,sh-1),ex=clamp(Math.ceil(b.x+b.w+side),sx+1,sw),ey=clamp(Math.ceil(b.y+b.h+bottom),sy+1,sh),w=ex-sx,h=ey-sy,c=makeCanvas(w,h),ctx=c.getContext("2d",{alpha:false,willReadFrequently:true});
+  ctx.fillStyle="white";ctx.fillRect(0,0,w,h);ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality="high";ctx.drawImage(source,sx,sy,w,h,0,0,w,h);
+  return c;
+}
 function renderEye(){if(!state.eyeBinary)return;const c=ui.eyeCanvas;c.width=state.eyeWidth;c.height=state.eyeHeight;const im=new ImageData(c.width,c.height),d=im.data;for(let i=0,p=0;i<state.eyeBinary.length;i++,p+=4){const v=state.eyeBinary[i]===0?0:255;d[p]=d[p+1]=d[p+2]=v;d[p+3]=255}const ctx=c.getContext("2d",{alpha:false});ctx.fillStyle="white";ctx.fillRect(0,0,c.width,c.height);ctx.putImageData(im,0,0)}
 async function prepareEyesFromPortrait(){
   if(!state.source||state.processing)return;state.processing=true;ui.eyeBtn.disabled=true;
@@ -421,22 +487,113 @@ async function prepareEyesFromPortrait(){
 }
 async function loadEyeFile(file){
   if(!file?.type.startsWith("image/"))return showToast("اختر صورة PNG أو JPG أو WEBP للعين.",true);
-  try{const url=URL.createObjectURL(file),img=new Image();img.decoding="async";img.src=url;await img.decode();const natural=[img.naturalWidth,img.naturalHeight],size=fit(...natural),c=makeCanvas(size.width,size.height),ctx=c.getContext("2d",{alpha:false,willReadFrequently:true});ctx.fillStyle="white";ctx.fillRect(0,0,c.width,c.height);ctx.imageSmoothingQuality="high";ctx.drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(url);Object.assign(state,{eyeSource:c,eyeName:(file.name.replace(/\.[^.]+$/,"")||"eye").replace(/[^\w\u0600-\u06ff-]+/g,"-"),eyeBinary:null,eyeWidth:0,eyeHeight:0});ui.eyeFileMeta.hidden=false;ui.eyeFileMeta.textContent=file.name+" · "+natural[0]+"×"+natural[1];ui.eyeBtn.disabled=false;ui.eyeEnhanceBtn.disabled=false;ui.eyePngBtn.disabled=true;ui.eyeSvgBtn.disabled=true;ui.eyeEmpty.hidden=true;ui.eyePreview.hidden=false;drawPreview(c,ui.eyeOriginalCanvas);ui.eyeCanvas.width=ui.eyeCanvas.height=1;showToast("تم تحميل صورة العين فقط. اضغط تجهيز حفر العين.")}catch(e){console.error(e);showToast("تعذر فتح صورة العين.",true)}
+  try{const url=URL.createObjectURL(file),img=new Image();img.decoding="async";img.src=url;await img.decode();const natural=[img.naturalWidth,img.naturalHeight],size=fit(...natural),c=makeCanvas(size.width,size.height),ctx=c.getContext("2d",{alpha:false,willReadFrequently:true});ctx.fillStyle="white";ctx.fillRect(0,0,c.width,c.height);ctx.imageSmoothingQuality="high";ctx.drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(url);Object.assign(state,{eyeSource:c,eyeName:(file.name.replace(/\.[^.]+$/,"")||"eye").replace(/[^\w\u0600-\u06ff-]+/g,"-"),eyeBinary:null,eyeWidth:0,eyeHeight:0});ui.eyeFileMeta.hidden=false;ui.eyeFileMeta.textContent=file.name+" · "+natural[0]+"×"+natural[1];ui.eyeBtn.disabled=false;ui.eyeEnhanceBtn.disabled=false;ui.eyePngBtn.disabled=true;ui.eyeSvgBtn.disabled=true;ui.eyeEmpty.hidden=true;ui.eyePreview.hidden=false;drawPreview(c,ui.eyeOriginalCanvas);ui.eyeCanvas.width=ui.eyeCanvas.height=1;showToast(currentEyeSourceMode()==="full"?"تم تحميل الصورة الكاملة. اضغط تجهيز ليتم اكتشاف الوجه وقص العين.":"تم تحميل العين المقصوصة. اضغط تجهيز حفر العين.")}catch(e){console.error(e);showToast("تعذر فتح صورة العين.",true)}
 }
 function eyeCrop(binary,w,h){
   const ink=new Uint8Array(binary.length);for(let i=0;i<ink.length;i++)ink[i]=binary[i]===0?1:0;const b=bounds(ink,w,h);if(!b||b.area<w*h*.0008)throw Error("No eye detail");const m=Math.max(2,Math.round(Math.max(b.w,b.h)*.04)),sx=Math.max(0,b.x-m),sy=Math.max(0,b.y-m),ex=Math.min(w,b.x+b.w+m),ey=Math.min(h,b.y+b.h+m),ow=ex-sx,oh=ey-sy,out=new Uint8Array(ow*oh);out.fill(255);for(let y=0;y<oh;y++)for(let x=0;x<ow;x++)out[y*ow+x]=binary[(y+sy)*w+x+sx];return{binary:out,w:ow,h:oh};
 }
+function smooth01(a,b,v){const t=clamp((v-a)/(b-a),0,1);return t*t*(3-2*t)}
+function eyeFocusMask(w,h,fade,style){
+  const out=new Float32Array(w*h),twoEyes=w/h>1.72,soft=.06+(fade/10)*.15;
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+    const py=(y/h-.50)/(.41+(10-fade)*.010);
+    let d;
+    if(twoEyes){
+      const d1=Math.sqrt(((x/w-.29)/.315)**2+py*py),d2=Math.sqrt(((x/w-.71)/.315)**2+py*py);
+      d=Math.min(d1,d2);
+    }else d=Math.sqrt(((x/w-.5)/.49)**2+py*py);
+    let v=1-smooth01(1-soft,1.02,d);
+    const border=Math.min(x,y,w-1-x,h-1-y)/Math.max(1,Math.min(w,h));
+    v*=smooth01(.006,.025+soft*.08,border);
+      out[y*w+x]=style==="jarvis"?Math.max(v,.16*smooth01(.005,.04,border)):v;
+  }
+  return out;
+}
+function suppressEyeSideArtifacts(data,focus,w,h){
+  const d=data.data,blocked=new Uint8Array(w),limit=Math.round(h*.20);
+  for(let x=0;x<w;x++){
+    if(x>w*.22&&x<w*.78)continue;
+    let dark=0;
+    for(let y=0;y<h;y++){const i=(y*w+x)*4,lum=d[i]*.2126+d[i+1]*.7152+d[i+2]*.0722;if(lum<72)dark++}
+    if(dark>limit)blocked[x]=1;
+  }
+  let left=-1,right=w;for(let x=0;x<w*.22;x++)if(blocked[x])left=x;for(let x=Math.floor(w*.78);x<w;x++)if(blocked[x]){right=x;break}
+  const pad=Math.max(3,Math.round(w*.012)),feather=Math.max(8,Math.round(w*.035));
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+    let keep=1;
+    if(left>=0)keep*=smooth01(left+pad,left+pad+feather,x);
+    if(right<w)keep*=1-smooth01(right-pad-feather,right-pad,x);
+    focus[y*w+x]*=keep;
+  }
+  return focus;
+}
+function prepareEyeTone(data,w,h,detail,noise,focus){
+  const all=new Uint8Array(w*h);all.fill(1);
+  const gray=grayscale(data,all),large=localMap(gray,all,w,h,clamp(Math.round(h*.16),12,120),false,PRESETS.soft),small=localMap(gray,all,w,h,clamp(Math.round(h*.018),2,12),false,PRESETS.soft),stats=grayPercentiles(gray,all,.012,.992),out=new Uint8Array(gray.length);
+  const contrast=1.02+detail*.055,sharp=.20+detail*.055,smooth=noise*.035;
+  for(let i=0;i<gray.length;i++){
+    let v=154+(gray[i]-large[i])*contrast+(large[i]-stats.mean)*.16;
+    v+=(gray[i]-small[i])*sharp;
+    v=v*(1-smooth)+small[i]*smooth;
+    const stretched=clamp((v-(stats.lo-10))/Math.max(30,stats.hi-stats.lo+18)*238+8,0,255);
+    v=v*.48+stretched*.52;
+    if(gray[i]<large[i]-24)v-=5+detail*.55;
+    out[i]=clamp(Math.round(255-(255-v)*focus[i]),0,255);
+  }
+  return{tone:out,gray,local:large};
+}
+function diffuseEye(tone,w,h,method,detail,density="light"){
+  const work=Float32Array.from(tone),out=new Uint8Array(tone.length);out.fill(255);
+  const kernel=method==="jarvis"
+    ? [[1,0,7],[2,0,5],[-2,1,3],[-1,1,5],[0,1,7],[1,1,5],[2,1,3],[-2,2,1],[-1,2,3],[0,2,5],[1,2,3],[2,2,1]]
+    : [[1,0,8],[2,0,4],[-2,1,2],[-1,1,4],[0,1,8],[1,1,4],[2,1,2],[-2,2,1],[-1,2,2],[0,2,4],[1,2,2],[2,2,1]];
+  const baseThreshold=density==="strong"?128:density==="balanced"?118:106,divisor=method==="jarvis"?48:42,threshold=baseThreshold+(detail-5)*1.35;
+  for(let y=0;y<h;y++){
+    const reverse=y%2===1,start=reverse?w-1:0,end=reverse?-1:w,step=reverse?-1:1;
+    for(let x=start;x!==end;x+=step){
+      const i=y*w+x,old=clamp(work[i],0,255),value=old<threshold?0:255;out[i]=value;
+      const err=old-value;
+      for(const[kx,ky,weight]of kernel){const xx=x+(reverse?-kx:kx),yy=y+ky;if(xx>=0&&xx<w&&yy<h)work[yy*w+xx]+=err*weight/divisor}
+    }
+  }
+  return out;
+}
+function reinforceEyeEdges(binary,tone,gray,focus,w,h,detail,style){
+  const limit=(style==="line"?37:66)-detail*1.7;
+  for(let y=1;y<h-1;y++)for(let x=1;x<w-1;x++){
+    const i=y*w+x;if(focus[i]<.13)continue;
+    const gx=-gray[i-w-1]-2*gray[i-1]-gray[i+w-1]+gray[i-w+1]+2*gray[i+1]+gray[i+w+1],gy=-gray[i-w-1]-2*gray[i-w]-gray[i-w+1]+gray[i+w-1]+2*gray[i+w]+gray[i+w+1],edge=(Math.abs(gx)+Math.abs(gy))/4;
+    if(edge>limit&&tone[i]<218)binary[i]=0;
+  }
+  return binary;
+}
+function cleanEyeDither(binary,tone,w,h,noise){
+  if(noise<4)return binary;
+  const copy=binary.slice(),need=noise>=8?2:1;
+  for(let y=1;y<h-1;y++)for(let x=1;x<w-1;x++){const i=y*w+x;if(copy[i]!==0||tone[i]<150)continue;let n=0;for(let yy=-1;yy<=1;yy++)for(let xx=-1;xx<=1;xx++)if((xx||yy)&&copy[i+yy*w+xx]===0)n++;if(n<need)binary[i]=255}
+  return binary;
+}
 async function prepareEyes(){
   if(!state.eyeSource||state.processing)return;state.processing=true;ui.eyeBtn.disabled=true;
-  try{modelStatus("loading","تحليل تفاصيل العين…");const c=state.eyeSource,w=c.width,h=c.height,ctx=c.getContext("2d",{willReadFrequently:true}),data=ctx.getImageData(0,0,w,h),mask=new Uint8Array(w*h);mask.fill(1);const gray=grayscale(data,mask),detail=+ui.eyeDetailRange.value||6,noise=+ui.eyeNoiseRange.value||5,local=localMap(gray,mask,w,h,clamp(Math.round(Math.min(w,h)*.045),7,48),false,PRESETS.soft),global=otsu(gray,mask),binary=new Uint8Array(w*h);binary.fill(255);
-    for(let y=1;y<h-1;y++)for(let x=1;x<w-1;x++){const i=y*w+x,v=gray[i],gx=-gray[i-w-1]-2*gray[i-1]-gray[i+w-1]+gray[i-w+1]+2*gray[i+1]+gray[i+w+1],gy=-gray[i-w-1]-2*gray[i-w]-gray[i-w+1]+gray[i+w-1]+2*gray[i+w]+gray[i+w+1],edge=(Math.abs(gx)+Math.abs(gy))/4,edgeLimit=42-detail*2.5,localBias=18-detail*1.2;if(v<local[i]-localBias||(edge>edgeLimit&&v<local[i]+9&&v<228)||v<global-38)binary[i]=0}
-    cleanComponents(binary,mask,w,h,null,Math.max(2,Math.round(noise*noise*w*h/2500000)),0);const cropped=eyeCrop(binary,w,h);Object.assign(state,{eyeBinary:cropped.binary,eyeWidth:cropped.w,eyeHeight:cropped.h});renderEye();ui.eyePngBtn.disabled=false;ui.eyeSvgBtn.disabled=false;modelStatus("ready","رسمة العين جاهزة");showToast("تم تجهيز العين وحدها وقص الفراغات لأقصى حد.")
-  }catch(e){console.error(e);showToast("تفاصيل العين غير كافية. جرّب صورة أقرب أو استخدم AI توضيح أولًا.",true)}finally{state.processing=false;ui.eyeBtn.disabled=false}
+  try{
+    let src=state.eyeSource;const sourceMode=currentEyeSourceMode();if(sourceMode==="full")src=await cropEyesFromFullImage(src);
+    modelStatus("loading","توزيع إضاءة العين وتجهيز نقط الحفر…");
+    const detail=+ui.eyeDetailRange.value||6,noise=+ui.eyeNoiseRange.value||4,fade=+ui.eyeFadeRange.value||7,style=ui.eyeStyleSelect.value||"wallet",density=ui.eyeDensitySelect.value||"light",dpi=clamp(+ui.eyeDpiSelect.value||300,300,600),widthMm=clamp(+ui.eyeWidthMm.value||65,15,150),targetW=clamp(Math.round(widthMm/25.4*dpi),320,3600),targetH=clamp(Math.round(targetW*src.height/src.width),100,2200),c=makeCanvas(targetW,targetH),ctx=c.getContext("2d",{alpha:false,willReadFrequently:true});
+    ctx.fillStyle="white";ctx.fillRect(0,0,targetW,targetH);ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality="high";ctx.drawImage(src,0,0,targetW,targetH);
+    const data=ctx.getImageData(0,0,targetW,targetH),focus=suppressEyeSideArtifacts(data,eyeFocusMask(targetW,targetH,fade,style),targetW,targetH),prepared=prepareEyeTone(data,targetW,targetH,detail,noise,focus);let binary;
+    if(style==="line"){
+      const all=new Uint8Array(targetW*targetH);all.fill(1);const local=localMap(prepared.tone,all,targetW,targetH,clamp(Math.round(targetH*.045),7,48),false,PRESETS.soft),global=otsu(prepared.tone,all);binary=new Uint8Array(targetW*targetH);binary.fill(255);
+      for(let i=0;i<binary.length;i++)if(focus[i]>.12&&(prepared.tone[i]<local[i]-(13-detail*.8)||prepared.tone[i]<global-30))binary[i]=0;
+    }else binary=diffuseEye(prepared.tone,targetW,targetH,style==="jarvis"?"jarvis":"stucki",detail,density);
+    reinforceEyeEdges(binary,prepared.tone,prepared.gray,focus,targetW,targetH,detail,style);cleanEyeDither(binary,prepared.tone,targetW,targetH,noise);
+    for(let i=0;i<binary.length;i++)if(focus[i]<.035)binary[i]=255;
+    const cropped=eyeCrop(binary,targetW,targetH);Object.assign(state,{eyeBinary:cropped.binary,eyeWidth:cropped.w,eyeHeight:cropped.h});renderEye();ui.eyePngBtn.disabled=false;ui.eyeSvgBtn.disabled=false;modelStatus("ready",`رسمة العين جاهزة · ${dpi} DPI`);showToast(sourceMode==="full"?"تم اكتشاف الوجه وقص العينين وتجهيزهما تلقائيًا.":"تم تجهيز العين المقصوصة بدون فريم.")
+  }catch(e){console.error(e);showToast(e?.message==="FULL_FACE_NOT_FOUND"?"لم أجد وجهًا واضحًا في الصورة. اختر صورة أمامية أو استخدم اختيار «عين مقصوصة».":"تفاصيل العين غير كافية. جرّب صورة أوضح أو استخدم AI توضيح أولًا.",true)}finally{state.processing=false;ui.eyeBtn.disabled=false}
 }
 function eyeSvgPath(){const done=[];let active=new Map(),w=state.eyeWidth,h=state.eyeHeight,b=state.eyeBinary;for(let y=0;y<h;y++){const runs=[];let start=-1;for(let x=0;x<=w;x++){const black=x<w&&b[y*w+x]===0;if(black&&start<0)start=x;if(!black&&start>=0){runs.push([start,x-start]);start=-1}}const next=new Map();for(const[x,rw]of runs){const key=`${x}:${rw}`,r=active.get(key)||{x,y,w:rw,h:0};r.h++;next.set(key,r)}for(const[k,r]of active)if(!next.has(k))done.push(r);active=next}done.push(...active.values());return done.map(r=>`M${r.x} ${r.y}h${r.w}v${r.h}h-${r.w}Z`).join("")}
-function exportEyePNG(){if(state.eyeBinary)ui.eyeCanvas.toBlob(b=>{if(b){const old=state.name;state.name=state.eyeName+"-eye-detail";download(b,"png");state.name=old;showToast("تم تصدير رسمة العين PNG بخلفية بيضاء.")}},"image/png")}
-function exportEyeSVG(){if(!state.eyeBinary)return;const svg=`<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" width="${state.eyeWidth}" height="${state.eyeHeight}" viewBox="0 0 ${state.eyeWidth} ${state.eyeHeight}"><rect width="100%" height="100%" fill="white"/><path d="${eyeSvgPath()}" fill="black"/></svg>`,old=state.name;state.name=state.eyeName+"-eye-detail";download(new Blob([svg],{type:"image/svg+xml"}),"svg");state.name=old;showToast("تم تصدير فيكتور العين بخلفية بيضاء.")}
-function exportPDF(){if(!state.binary)return;const PDF=window.jspdf?.jsPDF;if(!PDF)return showToast("مكتبة PDF لم تُحمّل. استخدم PNG أو جرّب مع الإنترنت.",true);const land=state.width>state.height,page=land?[297,210]:[210,297],pdf=new PDF({orientation:land?"landscape":"portrait",unit:"mm",format:"a4",compress:true}),s=Math.min((page[0]-20)/state.width,(page[1]-20)/state.height),w=state.width*s,h=state.height*s;pdf.addImage(ui.finalCanvas.toDataURL("image/png"),"PNG",(page[0]-w)/2,(page[1]-h)/2,w,h,undefined,"FAST");pdf.save(`${state.name}-fiber-30w.pdf`);showToast("تم تصدير PDF للطباعة.")}
+function exportEyePNG(){if(demoGuard())return;if(state.eyeBinary)ui.eyeCanvas.toBlob(b=>{if(b){const old=state.name;state.name=state.eyeName+"-wallet-eye";download(b,"png");state.name=old;showToast("تم تصدير رسمة العين PNG بخلفية بيضاء.")}},"image/png")}
+function exportEyeSVG(){if(demoGuard()||!state.eyeBinary)return;const svg=`<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" width="${state.eyeWidth}" height="${state.eyeHeight}" viewBox="0 0 ${state.eyeWidth} ${state.eyeHeight}"><rect width="100%" height="100%" fill="white"/><path d="${eyeSvgPath()}" fill="black"/></svg>`,old=state.name;state.name=state.eyeName+"-wallet-eye";download(new Blob([svg],{type:"image/svg+xml"}),"svg");state.name=old;showToast("تم تصدير فيكتور العين بخلفية بيضاء.")}
+function exportPDF(){if(demoGuard()||!state.binary)return;const PDF=window.jspdf?.jsPDF;if(!PDF)return showToast("مكتبة PDF لم تُحمّل. استخدم PNG أو جرّب مع الإنترنت.",true);const land=state.width>state.height,page=land?[297,210]:[210,297],pdf=new PDF({orientation:land?"landscape":"portrait",unit:"mm",format:"a4",compress:true}),s=Math.min((page[0]-20)/state.width,(page[1]-20)/state.height),w=state.width*s,h=state.height*s;pdf.addImage(ui.finalCanvas.toDataURL("image/png"),"PNG",(page[0]-w)/2,(page[1]-h)/2,w,h,undefined,"FAST");pdf.save(`${state.name}-fiber-30w.pdf`);showToast("تم تصدير PDF للطباعة.")}
 
 ui.fileInput.addEventListener("change",e=>loadFile(e.target.files[0]));ui.dropZone.addEventListener("dragover",e=>{e.preventDefault();ui.dropZone.classList.add("dragging")});ui.dropZone.addEventListener("dragleave",()=>ui.dropZone.classList.remove("dragging"));ui.dropZone.addEventListener("drop",e=>{e.preventDefault();ui.dropZone.classList.remove("dragging");loadFile(e.dataTransfer.files[0])});ui.prepareBtn.addEventListener("click",autoPrepare);ui.eyeBtn.addEventListener("click",prepareEyes);ui.applyMaskBtn.addEventListener("click",applyManual);ui.resetMaskBtn.addEventListener("click",()=>{if(state.mask){state.mask.fill(1);renderMask();showToast("تمت إعادة الماسك؛ امسح الخلفية بالفرشاة.")}});ui.invertBtn.addEventListener("click",()=>{if(state.binary){state.inverted=!state.inverted;renderFinal();showToast(state.inverted?"تم عكس الأبيض والأسود.":"تم إلغاء العكس.")}});ui.bmpBtn.addEventListener("click",exportBMP);ui.cutoutBtn.addEventListener("click",exportCutoutPNG);ui.pngBtn.addEventListener("click",exportPNG);ui.txtBtn.addEventListener("click",exportSettingsTXT);ui.svgBtn.addEventListener("click",exportSVG);ui.pdfBtn.addEventListener("click",exportPDF);ui.eyePngBtn.addEventListener("click",exportEyePNG);ui.eyeSvgBtn.addEventListener("click",exportEyeSVG);
 function selectMode(mode){
@@ -445,12 +602,20 @@ function selectMode(mode){
 document.querySelectorAll("[data-mode]").forEach(b=>b.addEventListener("click",()=>selectMode(b.dataset.mode)));
 document.querySelectorAll("[data-home]").forEach(b=>b.addEventListener("click",e=>{e.preventDefault();selectMode(null)}));
 ui.eyeFileInput.addEventListener("change",e=>loadEyeFile(e.target.files[0]));ui.eyeDropZone.addEventListener("dragover",e=>{e.preventDefault();ui.eyeDropZone.classList.add("dragging")});ui.eyeDropZone.addEventListener("dragleave",()=>ui.eyeDropZone.classList.remove("dragging"));ui.eyeDropZone.addEventListener("drop",e=>{e.preventDefault();ui.eyeDropZone.classList.remove("dragging");loadEyeFile(e.dataTransfer.files[0])});
+document.querySelectorAll('input[name="eyeSourceMode"]').forEach(input=>input.addEventListener("change",()=>{updateEyeInputUI();state.eyeBinary=null;ui.eyePngBtn.disabled=true;ui.eyeSvgBtn.disabled=true;if(state.eyeSource)showToast(currentEyeSourceMode()==="full"?"سيتم اكتشاف الوجه وقص العين تلقائيًا عند التجهيز.":"سيتم استخدام الصورة كعين مقصوصة بدون اكتشاف الوجه.")}));
+ui.eyeDpiSelect?.addEventListener("change",updateEyeInputUI);
 ui.photoEnhanceBtn.addEventListener("click",()=>enhanceTarget("photo"));ui.eyeEnhanceBtn.addEventListener("click",()=>enhanceTarget("eye"));
 document.querySelectorAll('input[name="preset"]').forEach(input=>input.addEventListener("change",()=>{document.querySelectorAll(".preset").forEach(l=>l.classList.toggle("active",l.contains(input)&&input.checked));if(state.binary)showToast("تم تغيير البريسيت. اضغط التحضير لتطبيقه.")}));document.querySelectorAll(".view-tab").forEach(b=>b.addEventListener("click",()=>switchView(b.dataset.view)));document.querySelectorAll(".tool-btn").forEach(b=>b.addEventListener("click",()=>{state.brushMode=b.dataset.brush;document.querySelectorAll(".tool-btn").forEach(x=>x.classList.toggle("active",x===b))}));
 ui.maskCanvas.addEventListener("pointerdown",e=>{if(!state.manual)return;state.drawing=true;state.lastPoint=null;ui.maskCanvas.setPointerCapture(e.pointerId);paint(pointFromEvent(e))});ui.maskCanvas.addEventListener("pointermove",e=>{if(state.drawing&&state.manual)paint(pointFromEvent(e))});const finish=()=>{if(state.drawing){state.drawing=false;state.lastPoint=null;renderMask()}};ui.maskCanvas.addEventListener("pointerup",finish);ui.maskCanvas.addEventListener("pointercancel",finish);
 for(const el of [ui.materialSelect,ui.dpiSelect,ui.targetWidth,ui.targetHeight,ui.lockRatio])el?.addEventListener("change",()=>{if(el===ui.materialSelect)showToast("تم تغيير خامة EZCAD. الإعدادات المعروضة قيم بداية للاختبار.");updateEzcadPanel()});
 for(const el of [ui.targetWidth,ui.targetHeight])el?.addEventListener("input",()=>updateEzcadPanel());
+ui.updateBtn?.addEventListener("click",checkForUpdates);
+ui.closeUpdateBtn?.addEventListener("click",closeUpdatePanel);
+ui.updatePanel?.addEventListener("click",e=>{if(e.target===ui.updatePanel)closeUpdatePanel()});
+if(ui.versionLabel)ui.versionLabel.textContent=`V${APP_VERSION}`;
+if(DEMO_MODE){document.body.classList.add("demo-mode");if(ui.demoBanner)ui.demoBanner.hidden=false}
+updateEyeInputUI();
 updateEzcadPanel();
 modelStatus("idle","AI يُحمّل مجانًا عند أول استخدام");
 const initialMode=new URLSearchParams(location.search).get("mode");if(["photo","eye"].includes(initialMode))selectMode(initialMode);
-window.__fiberAutoMax={get state(){return state},selectMode,verifyPureBinary:pureBinary,presets:Object.keys(PRESETS),materials:Object.keys(MATERIALS),version:"5.0.0-matbaagy"};
+window.__fiberAutoMax={get state(){return state},selectMode,verifyPureBinary:pureBinary,presets:Object.keys(PRESETS),materials:Object.keys(MATERIALS),version:APP_VERSION};

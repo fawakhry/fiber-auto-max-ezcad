@@ -4,12 +4,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#07110e">
-  <title>مطبعجي فايبر ليزر | تجهيز الصور للحفر</title>
-  <link rel="stylesheet" href="styles.css?v=5.0.0">
+  <title>مطبعجي فايبر ليزر V5.6 | تجهيز الصور والحفر</title>
+  <link rel="stylesheet" href="styles.css?v=5.6.0">
   <script defer src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
-  <script defer src="app.js?v=5.0.0"></script>
+  <script defer src="update-config.js?v=5.6.0"></script>
+  <script defer src="app.js?v=5.6.0"></script>
 </head>
 <body>
+  <div id="demoBanner" class="demo-banner" hidden>نسخة تجريبية — المعاينة متاحة والتصدير مقفول</div>
   <header class="topbar">
     <a class="brand" href="#" data-home>
       <span class="brand-gem">م</span>
@@ -18,6 +20,8 @@
     <div class="top-pills">
       <span><i></i> معالجة داخل جهازك</span>
       <span>Fiber 30W</span>
+      <span id="versionLabel">V5.6.0</span>
+      <button id="updateBtn" class="update-btn" type="button">↻ فحص التحديث</button>
       <div id="modelBadge" class="model-badge" data-state="idle"><i></i><span>AI جاهز للتحميل</span></div>
     </div>
   </header>
@@ -88,6 +92,7 @@
           <div class="panel-section compact-settings">
             <div class="section-title"><span>03</span><b>المقاس والخامة</b></div>
             <label>الخامة<select id="materialSelect">
+              <option value="leather_wallet">جلد محفظة فاتح — Fiber 30W</option>
               <option value="steel_photo">ستانلس / ميدالية — صورة ناعمة</option>
               <option value="steel_dark">ستانلس — علامة غامقة</option>
               <option value="anodized">ألومنيوم أنودايز</option>
@@ -143,22 +148,50 @@
     <section id="eyeWorkspace" class="workspace eye-workspace" hidden>
       <div class="workspace-head">
         <button class="back-btn" data-home>→ رجوع للاختيارات</button>
-        <div><span>المسار 02</span><h2>حفر العين فقط</h2><p>ارفع صورة مقصوصة للعين؛ هذا المسار لا يستخدم صورة الشخص.</p></div>
+        <div><span>المسار 02</span><h2>حفر العين فقط</h2><p>ارفع صورة وجه كاملة للقص التلقائي، أو ارفع العين مقصوصة وجاهزة.</p></div>
       </div>
       <div class="eye-grid">
         <aside class="eye-controls">
+          <div class="eye-source-choice">
+            <strong>هترفع صورة إيه؟</strong>
+            <div>
+              <label class="active"><input type="radio" name="eyeSourceMode" value="full" checked><span><b>صورة كاملة</b><small>يكتشف الوجه ويقص العين تلقائيًا</small></span></label>
+              <label><input type="radio" name="eyeSourceMode" value="crop"><span><b>عين مقصوصة</b><small>يجهز الصورة كما رفعتها</small></span></label>
+            </div>
+          </div>
           <label id="eyeDropZone" class="drop-zone eye-drop" for="eyeFileInput">
             <input id="eyeFileInput" type="file" accept="image/png,image/jpeg,image/webp" hidden>
-            <span class="upload-orb">◉</span><b>اختر صورة العين المقصوصة</b><small>صورة العين فقط، وليست صورة الشخص</small>
+            <span class="upload-orb">◉</span><b id="eyeDropTitle">اختر صورة الوجه كاملة</b><small id="eyeDropHint">البرنامج سيكتشف العينين ويقصهما تلقائيًا</small>
           </label>
           <div id="eyeFileMeta" class="file-meta" hidden></div>
           <button id="eyeEnhanceBtn" class="ai-btn" disabled><span>✦</span><b>توضيح العين بالـ AI</b><small>تكبير ×2 وإظهار الجفن والقزحية</small></button>
           <div class="eye-options">
+            <label>شكل الحفر<select id="eyeStyleSelect">
+              <option value="wallet" selected>محفظة واقعية — نقط ناعمة</option>
+              <option value="jarvis">تفاصيل فوتوغرافية — Jarvis</option>
+              <option value="line">خطوط أسود قوية</option>
+            </select></label>
+            <label>كثافة الحرق<select id="eyeDensitySelect">
+              <option value="light" selected>خفيفة — الأفضل للجلد</option>
+              <option value="balanced">متوسطة</option>
+              <option value="strong">قوية</option>
+            </select></label>
             <label>قوة التفاصيل<input id="eyeDetailRange" type="range" min="1" max="10" value="6"></label>
-            <label>تنظيف النويز<input id="eyeNoiseRange" type="range" min="1" max="10" value="5"></label>
+            <label>نعومة اختفاء الجلد<input id="eyeFadeRange" type="range" min="1" max="10" value="7"></label>
+            <label>تنظيف النويز<input id="eyeNoiseRange" type="range" min="1" max="10" value="4"></label>
+            <div class="eye-size-grid">
+              <label>عرض الحفر mm<input id="eyeWidthMm" type="number" min="15" max="150" step=".5" value="65"></label>
+              <label>دقة النقط<select id="eyeDpiSelect"><option selected>300</option><option>400</option><option>500</option><option>600</option></select></label>
+            </div>
           </div>
           <button id="eyeBtn" class="primary-btn eye-primary" disabled><span>جهّز حفر العين فقط</span><b>←</b></button>
-          <div class="eye-note"><b>مهم</b><p>أفضل نتيجة تكون بصورة واضحة ومقربة يظهر فيها الجفن والرموش والقزحية.</p></div>
+          <div class="eye-note"><b>وضع المحفظة الاحترافي</b><p>يحافظ على الحاجب والجفن والرموش والقزحية، ويحوّل ظل الجلد لنقط متدرجة بدون مستطيل أسود حول العين.</p></div>
+          <div class="laser-safety"><b>تنبيه خامة</b><p>لا تحفر PVC أو جلدًا صناعيًا مجهول التركيب. اختبر قطعة صغيرة واستخدم شفط أبخرة مناسب.</p></div>
+          <div class="eye-ezcad-card">
+            <strong>إعداد EZCAD للملف الجاهز</strong>
+            <div><span>Fixed DPI <b id="eyeEzcadDpi">300 × 300</b></span><span>Dither <b>OFF</b></span><span>Gray <b>OFF</b></span><span>Lighten <b>OFF</b></span><span>Pixel Power Adjust <b>OFF</b></span><span>Drill Mode <b>OFF كبداية</b></span></div>
+            <p>البرنامج عمل التنقيط والإضاءة بالفعل. تشغيلهم مرة ثانية في EZCAD يضيّع العين ويغمّق المستطيل.</p>
+          </div>
         </aside>
         <section class="eye-preview-area">
           <div id="eyeEmpty" class="empty-state"><span class="empty-eye">◉</span><h3>اختر صورة العين</h3><p>ستُقص التفاصيل تلقائيًا بأكبر قدر ممكن.</p></div>
@@ -171,6 +204,15 @@
       </div>
     </section>
   </main>
+  <div id="updatePanel" class="update-panel" hidden>
+    <section>
+      <button id="closeUpdateBtn" class="update-close" type="button">×</button>
+      <span class="kicker">MATBAAGY UPDATE CENTER</span>
+      <h2 id="updateTitle">فحص تحديث البرنامج</h2>
+      <p id="updateStatus">جاري الاتصال بمصدر التحديثات…</p>
+      <a id="updateDownloadLink" class="primary-btn update-download" href="#" target="_blank" rel="noopener" hidden><span>تحميل النسخة الجديدة</span><b>←</b></a>
+    </section>
+  </div>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 </body>
 </html>
