@@ -1,6 +1,6 @@
 {
-  "version": "5.6.1",
-  "title": "مطبعجي فايبر ليزر V5.6.1",
-  "notes": "تحديث كسر الكاش: ملفات app/styles/update-config بأسماء جديدة حتى لا يفتح GitHub Pages أو المتصفح النسخة القديمة، مع الحفاظ على قص العين التلقائي وإعدادات EZCAD.",
+  "version": "5.6.2",
+  "title": "مطبعجي فايبر ليزر V5.6.2",
+  "notes": "إصلاح نهائي لظهور النسخة القديمة: APP_VERSION داخل app.js تم تحديثه، والصفحة تستخدم أسماء ملفات جديدة app.v562.js/styles.v562.css لكسر الكاش بالكامل.",
   "downloadUrl": "https://github.com/fawakhry/fiber-auto-max-ezcad/archive/refs/heads/main.zip"
 }
