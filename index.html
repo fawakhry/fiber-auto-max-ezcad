@@ -7,11 +7,11 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>مطبعجي فايبر ليزر V5.8.0 | تجهيز الصور والحفر</title>
-  <link rel="stylesheet" href="styles.css?v=5.8.0">
+  <title>مطبعجي فايبر ليزر V6.0.0 | استوديو الصور والمعايرة</title>
+  <link rel="stylesheet" href="styles.css?v=6.0.0">
   <script defer src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js" integrity="sha384-en/ztfPSRkGfME4KIm05joYXynqzUgbsG5nMrj/xEFAHXkeZfO3yMK8QQ+mP7p1/" crossorigin="anonymous"></script>
-  <script defer src="update-config.js?v=5.8.0"></script>
-  <script defer src="app.js?v=5.8.0"></script>
+  <script defer src="update-config.js?v=6.0.0"></script>
+  <script defer src="app.js?v=6.0.0"></script>
 </head>
 <body>
   <header class="topbar">
@@ -22,7 +22,7 @@
     <div class="top-pills">
       <span><i></i> معالجة داخل جهازك</span>
       <span>Fiber 30W</span>
-      <span id="versionLabel">V5.8.0</span><span style="border-color:#57d9ad;color:#57d9ad">LEATHER PHOTO</span>
+      <span id="versionLabel">V6.0.0</span><span style="border-color:#57d9ad;color:#57d9ad">CALIBRATED PHOTO</span>
       <button id="updateBtn" class="update-btn" type="button">↻ فحص التحديث</button>
       <div id="modelBadge" class="model-badge" data-state="idle"><i></i><span>AI جاهز للتحميل</span></div>
     </div>
@@ -33,7 +33,7 @@
       <div class="home-copy">
         <span class="kicker">MATBAAGY · AI PORTRAIT STUDIO</span>
         <h1>اختار نوع الشغل،<br><em>والمكنة تاخد ملفها جاهز.</em></h1>
-        <p>مساران منفصلان تمامًا للحفر على الفايبر: صورة شخص كاملة بعزل احترافي، أو صورة عين مقصوصة بتفاصيل دقيقة.</p>
+        <p>ثلاثة مسارات للحفر على الفايبر: صورة شخص بمحرك تنقيط ذكي، صورة عين مستقلة، ومعمل معايرة يحوّل نتيجة جلدك ومكنتك إلى بريسيت دقيق.</p>
       </div>
       <div class="mode-grid">
         <button class="mode-card photo-mode" data-mode="photo">
@@ -47,6 +47,12 @@
           <span class="mode-icon eye-icon"><i></i></span>
           <span class="mode-copy"><b>حفر عين</b><small>ارفع صورة مقصوصة للعين فقط · تحسين التفاصيل · ملف مستقل</small></span>
           <span class="mode-go">اختر صورة العين ←</span>
+        </button>
+        <button class="mode-card calibration-mode" data-mode="calibration">
+          <span class="mode-number">03</span>
+          <span class="mode-icon calibration-icon"><i></i></span>
+          <span class="mode-copy"><b>معمل المعايرة</b><small>اطبع كارت درجات · صوّر النتيجة · حلّل استجابة الجلد · احفظ بريسيت المكنة</small></span>
+          <span class="mode-go">عاير المكنة والخامة ←</span>
         </button>
       </div>
       <div class="feature-strip">
@@ -88,7 +94,22 @@
             <label>توزيع الإضاءة<input id="lightBalanceRange" type="range" min="0" max="10" value="8"></label>
             <label>تفاصيل الوجه<input id="faceDetailRange" type="range" min="1" max="10" value="7"></label>
             <label>قوة الأسود<input id="blackStrengthRange" type="range" min="1" max="10" value="5"></label>
+            <label>تعويض تمدد النقطة<input id="dotGrowthRange" type="range" min="0" max="10" value="4"></label>
             <small>الإضاءة تتوزع تلقائيًا لإخفاء الظلال والحروق. ارفع تنظيف الخلفية لو ظهر كرسي/حائط.</small>
+          </div>
+
+          <div class="panel-section compact-settings engine-settings">
+            <div class="section-title"><span>AI</span><b>محرك الصورة والمعايرة</b></div>
+            <label>محرك التنقيط<select id="algorithmSelect">
+              <option value="auto" selected>Auto Quality — يقارن ويختار</option>
+              <option value="jarvis">Jarvis — تدرج ناعم</option>
+              <option value="stucki">Stucki — صورة متوازنة</option>
+              <option value="atkinson">Atkinson — جلد حساس</option>
+              <option value="floyd">Floyd–Steinberg — حواف حادة</option>
+              <option value="finegrain">Fine Grain — نقط دقيقة منتظمة</option>
+            </select></label>
+            <label>بريسيت المكنة/الخامة<select id="profileSelect"><option value="">Factory Leather — بدون معايرة</option></select></label>
+            <small id="profileHint">لأفضل نتيجة: استخدم معمل المعايرة على قصاصة من نفس الجلد.</small>
           </div>
 
           <div class="panel-section compact-settings">
@@ -136,7 +157,7 @@
 
         <section class="preview-area">
           <div class="preview-toolbar">
-            <div class="view-tabs"><button class="view-tab active" data-view="all">الكل</button><button class="view-tab" data-view="original">الأصل</button><button class="view-tab" data-view="mask">العزل</button><button class="view-tab" data-view="final">الحفر</button></div>
+            <div class="view-tabs"><button class="view-tab active" data-view="all">الكل</button><button class="view-tab" data-view="original">الأصل</button><button class="view-tab" data-view="mask">العزل</button><button class="view-tab" data-view="final">ملف الحفر</button><button class="view-tab" data-view="leather">محاكاة الجلد</button></div>
             <button id="invertBtn" class="invert-btn" disabled>◐ عكس الأسود والأبيض</button>
           </div>
           <div id="emptyState" class="empty-state"><span class="empty-orb">م</span><h3>ارفع صورة الشخص</h3><p>سيظهر الأصل، العزل على أبيض، ونتيجة الحفر هنا.</p></div>
@@ -144,10 +165,49 @@
             <article class="preview-card" data-card="original"><header><b>الصورة الأصلية</b><small>ORIGINAL</small></header><div class="canvas-wrap"><canvas id="originalCanvas"></canvas></div></article>
             <article class="preview-card" data-card="mask"><header><b>العزل على أبيض</b><small>AI CUTOUT</small></header><div id="maskCanvasWrap" class="canvas-wrap"><canvas id="maskCanvas"></canvas></div></article>
             <article class="preview-card final-card" data-card="final"><header><b>نتيجة الحفر</b><small>PURE B/W</small></header><div class="canvas-wrap"><canvas id="finalCanvas"></canvas></div></article>
+            <article class="preview-card leather-card" data-card="leather"><header><b>محاكاة على الجلد</b><small>BURN PREVIEW</small></header><div class="canvas-wrap leather-wrap"><canvas id="leatherCanvas"></canvas></div></article>
           </div>
-          <div id="resultStats" class="result-stats" hidden><span>Stucki Photo Dots</span><span id="sizeStat">—</span><span id="faceStat">حماية الوجه</span><span id="inkStat">كثافة النقط —</span><span id="exportPxStat">—</span></div>
+          <div id="resultStats" class="result-stats" hidden><span id="algorithmStat">Auto Quality</span><span id="qualityStat">تقييم الجودة —</span><span id="sizeStat">—</span><span id="faceStat">حماية الوجه</span><span id="inkStat">كثافة النقط —</span><span id="exportPxStat">—</span></div>
           <div id="exportBar" class="export-bar" hidden>
             <button id="cutoutBtn"><span>PNG</span> الشخص فقط أبيض</button><button id="pngBtn"><span>PNG</span> حفر منقّط</button><button id="bmpBtn" class="main-export"><span>BMP</span> EZCAD</button><button id="testCardBtn"><span>TEST</span> اختبار الجلد</button><button id="svgBtn"><span>SVG</span> فيكتور</button><button id="pdfBtn"><span>PDF</span> طباعة</button><button id="txtBtn"><span>TXT</span> إعداد EZCAD</button>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <section id="calibrationWorkspace" class="workspace calibration-workspace" hidden>
+      <div class="workspace-head">
+        <button class="back-btn" data-home>→ رجوع للاختيارات</button>
+        <div><span>المسار 03</span><h2>معمل معايرة الجلد والمكنة</h2><p>كارت واحد يحوّل استجابة الحرق الحقيقية إلى بريسيت يضبط درجات كل صورة بعده.</p></div>
+      </div>
+      <div class="calibration-grid">
+        <aside class="calibration-controls">
+          <div class="cal-step"><span>1</span><div><b>سجّل إعداد الاختبار</b><small>استخدم قصاصة من نفس نوع ولون الجلد النهائي.</small></div></div>
+          <div class="calibration-fields">
+            <label>اسم البريسيت<input id="profileName" value="جلد محفظة بيج"></label>
+            <label>مصدر الفايبر<select id="laserSource"><option>MAX 30W</option><option>Raycus 30W</option><option>JPT 30W</option><option>Other Fiber</option></select></label>
+            <label>العدسة<select id="lensSize"><option value="110">110×110 mm</option><option value="150" selected>150×150 mm</option><option value="175">175×175 mm</option><option value="200">200×200 mm</option></select></label>
+            <label>DPI الاختبار<select id="calibrationDpi"><option>250</option><option>300</option><option selected>333</option><option>400</option><option>500</option></select></label>
+            <label>Power المستخدم %<input id="calibrationPower" type="number" min="1" max="100" step=".5" value="12"></label>
+            <label>لون الجلد<input id="leatherColor" type="color" value="#b98756"></label>
+          </div>
+          <button id="calibrationExportBtn" class="primary-btn"><span>نزّل كارت المعايرة 0–70%</span><b>↓</b></button>
+          <div class="cal-note"><b>إعداد الحفر</b><p>استورد الكارت في EZCAD على Fixed DPI المكتوب، وشغّل Drill Mode فقط. Gray وDither وLighten وPixel Power كلهم OFF. احفره مرة واحدة بنفس Power/Speed/Frequency.</p></div>
+        </aside>
+        <section class="calibration-lab">
+          <div class="cal-step"><span>2</span><div><b>ارفع صورة الكارت بعد الحفر</b><small>صوّره من فوق بإضاءة موزعة، واقص الصورة عند حدود الكارت قدر الإمكان.</small></div></div>
+          <label id="calibrationDropZone" class="drop-zone calibration-drop" for="calibrationPhotoInput">
+            <input id="calibrationPhotoInput" type="file" accept="image/png,image/jpeg,image/webp" hidden>
+            <span class="upload-orb">＋</span><b>اختر صورة كارت الحفر</b><small>خانة 0% الفاتحة على اليسار و70% الأغمق على اليمين — والبرنامج يصحح الاتجاه تلقائيًا</small>
+          </label>
+          <div class="calibration-preview"><canvas id="calibrationCanvas"></canvas></div>
+          <div id="calibrationResults" class="calibration-results" hidden>
+            <div><span>وضوح الفرق</span><b id="calibrationSeparation">—</b></div>
+            <div><span>أقصى كثافة آمنة</span><b id="calibrationMaxInk">—</b></div>
+            <div><span>درجة المعايرة</span><b id="calibrationScore">—</b></div>
+            <div class="calibration-bars" id="calibrationBars"></div>
+            <p id="calibrationAdvice"></p>
+            <button id="saveProfileBtn" class="primary-btn"><span>احفظ البريسيت واستخدمه للصور</span><b>✓</b></button>
           </div>
         </section>
       </div>
