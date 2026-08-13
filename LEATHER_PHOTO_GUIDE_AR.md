@@ -1,97 +1,104 @@
-# الدليل العملي لحفر الصور على الجلد بالفايبر 30W
+# الدليل العملي العميق لرسم وحفر البورتريه على الجلد بالفايبر 30W
 
-## التشخيص
+## لماذا كانت الصورة تتحول إلى فحم؟
 
-النتيجة القديمة كانت تستخدم Threshold محليًا: كل بكسل إما أسود كامل أو أبيض كامل. اللون الوردي المشبع في الملابس يتحول عند حساب الإضاءة إلى رمادي داكن، فتتصل البكسلات السوداء وتظهر الملابس ككتلة فحم بلا طيات.
+الصورة الملونة الداكنة لا تصلح للتحويل بعتبة واحدة. الفستان أو الشعر الداكن يتحول إلى مساحة سوداء متصلة، ثم تكبر علامة الليزر على الجلد وتتداخل النقاط أو الخطوط، فتضيع الطيات والوجه. كما أن الجلد لا يستجيب للطاقة مثل الشاشة: نوع الجلد والصبغة والطلاء والفوكس والطاقة يغيرون حجم العلامة واستجابة الدرجات.
 
-الجلد لا يستجيب للطاقة كالشاشة؛ في كثير من الأنواع توجد عتبة بين «لا توجد علامة» و«حرق داكن». لذلك تمثيل الدرجات الصحيح يكون بكثافة نقط سوداء منفصلة، لا بتحويل المساحة كلها إلى أسود ولا بتغيير طاقة الليزر لكل درجة.
+الصورة المرجعية المطلوبة ليست Photo Dither فقط. هي رسم بورتريه بخطوط قليلة واضحة، مع تهشير محدود في الملابس والشعر وفراغات بيضاء كثيرة. أبحاث رسم البورتريه تصف الأسلوب نفسه بأنه خطوط متناثرة قليلة ومناطق مظللة قليلة تحفظ هوية الشخص.
 
-## الحل المستخدم في V6.0.0
+## الحل المستخدم في V7.0
 
-1. عزل الشخص وحماية الشعر والحواف.
-2. موازنة الإضاءة محليًا مع حماية الوجه.
-3. التحجيم أولًا إلى المقاس الحقيقي و333 DPI.
-4. ضغط الظلال حتى تظل أغمق الملابس محتوية على فراغات بيضاء.
-5. مقارنة Jarvis وStucki وAtkinson وFloyd–Steinberg وFine Grain واختيار أقلها خطأً وتكتلًا.
-6. تعزيز الحواجب والعين والفم وطيات القماش بدون ملء المساحات.
-7. حد أقصى محلي لكثافة النقط يمنع أي مربع فحم كامل.
-8. تعويض تمدد النقطة حسب الخامة، ثم إخراج PNG وBMP ثنائي اللون مع DPI الحقيقي.
+1. عزل الشخص وقص الخلفية مع حماية الشعر.
+2. موازنة الإضاءة محليًا وحماية الوجه من الظلال القاسية.
+3. التحجيم إلى المقاس وDPI النهائيين قبل إنشاء أي خط أو نقطة.
+4. `AI Line-Art` يستخرج الخطوط الدلالية من الصورة. يعمل محليًا داخل المتصفح بعد تنزيل الموديل.
+5. عند تعذر AI يعمل XDoG متعدد المقاييس مع Non-Maximum Suppression وHysteresis لإنتاج خطوط نظيفة بدل Threshold.
+6. ترقيق الخطوط مع الحفاظ على اتصال الحواف.
+7. إضافة تهشير قلم خفيف يتبع اتجاه البنية المحلية؛ المناطق الداكنة تأخذ خطوطًا إضافية بدل أن تصبح بقعة سوداء.
+8. حماية الوجه تقلل التهشير داخله وتحتفظ بخطوط العين والحاجب والأنف والفم.
+9. `Anti-Charcoal Guard` يزيل قلب أي كتلة سميكة، يقيس مربعات 2×2 المصمتة، ويضع حدًا لتغطية كل منطقة صغيرة.
+10. منحنى معايرة الجلد يحول الدرجة المطلوبة إلى كثافة حفر تعوض الاستجابة المقاسة.
 
-## معمل المعايرة
+## الاختيار المناسب داخل البرنامج
 
-1. نزّل كارت 0–70% من المسار الثالث عند DPI الذي ستستخدمه.
-2. احفره على قصاصة من نفس الجلد وبنفس Power وSpeed وFrequency وFocus.
-3. صوّر الكارت عموديًا بإضاءة موزعة واقص الصورة عند حدوده.
-4. ارفع الصورة؛ البرنامج يقيس استجابة كل درجة، ويكتشف اتجاهها، ويحدد موضع تشبع الحرق.
-5. احفظ البريسيت واختره في مسار الصورة. V6 يحول الدرجة المطلوبة إلى كثافة نقط تعوض الاستجابة المقاسة بدل افتراض أن الجلد خطي.
+| الاختيار | الاستخدام |
+| --- | --- |
+| AI Wallet Sketch | الأقرب لصورة المحفظة المرجعية؛ الاختيار الافتراضي |
+| XDoG Wallet Sketch | نفس الفكرة بدون تنزيل موديل Line-Art |
+| Clean Contour | خطوط خفيفة جدًا، مناسب للجلد سريع الاسوداد |
+| Etched Crosshatch | تهشير أوضح للملابس والشعر |
+| Ultra Photo | صورة فوتوغرافية منقطة، وليس شكل الرسم المرجعي |
 
-التحجيم قبل التنقيط خطوة أساسية: لو نُقّطت صورة صغيرة ثم كُبّرت، كل نقطة تتحول إلى مربع كبير متصل بالنقط المجاورة.
+قيمة بداية جيدة للصورة المرجعية: قوة الخطوط 8، التهشير 4، الحماية من الفحم 9، قوة الأسود 5. إذا زاد السواد، ارفع الحماية أولًا وخفّض التهشير، ولا ترفع DPI عشوائيًا.
 
-## إعداد EZCAD للملف الناتج
+## المعايرة الفيزيائية الإلزامية
+
+1. نزّل اختبار المسافة 600 DPI واحفره على قصاصة من نفس المحفظة.
+2. بالمكبر اختر أصغر مسافة تظل فيها الخطوط والنقط منفصلة. يحسب البرنامج `DPI = 25.4 / المسافة بالملليمتر`.
+3. نزّل كارت 0–70% عند DPI المختار واحفره بنفس Power وSpeed وFrequency وFocus.
+4. صوّر الكارت عموديًا بإضاءة موزعة وارفعه.
+5. احفظ البريسيت؛ سيمنع البرنامج تجاوز أقصى كثافة مفيدة ويعكس منحنى الحرق.
+
+LightBurn يوضح أن أفضل Line Interval يجعل خطوط الحفر تتلامس بلا تداخل أو فراغ، وأن Dot Width Correction يعتمد على عرض العلامة الفعلي والخامة. لذلك 600 أو 800 DPI لا يعنيان تلقائيًا تفاصيل أفضل؛ إذا كانت علامة الليزر أعرض من المسافة، ستحصل على حرق أغمق وأبطأ بلا معلومات إضافية.
+
+## إعداد EZCAD
 
 | الإعداد | القيمة |
 | --- | --- |
-| Fixed DPI | ON، ونفس DPI المكتوب في البرنامج |
+| Fixed DPI | ON، نفس DPI الموجود في الملف |
+| Drill Mode | ON |
 | Gray | OFF |
 | Dither | OFF |
 | Lighten | OFF |
 | Pixel Power Adjust | OFF |
-| Drill Mode | ON |
-| Bidirectional Scan | OFF في أول معايرة |
+| Bidirectional Scan | OFF في أول اختبار |
 | Pass / Loop | 1 |
 
-لا تستخدم Hatch ولا تعالج الملف مرة أخرى؛ البرنامج سلّم EZCAD خريطة النقط النهائية.
+لا تستخدم Hatch ولا Dither مرة ثانية. الملف ثنائي اللون ويحمل الخطوط أو النقط النهائية بالفعل.
 
-## نقطة بداية للفايبر 30W على جلد محفظة فاتح
+## نقطة بداية حذرة لفايبر 30W
 
-هذه ليست قيمة سحرية لكل الجلود. شغّل ملف «اختبار الجلد» على قصاصة من المنتج نفسه:
-
-| المحاولة | Speed | Power | Frequency | DPI | Pass |
+| الاختبار | Speed | Power | Frequency | DPI | Loop |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| خفيفة | 3000 mm/s | 8% | 50 kHz | 333 | 1 |
-| متوسطة | 3000 mm/s | 12% | 50 kHz | 333 | 1 |
-| أقوى | 2500–3000 mm/s | 16% | 50 kHz | 333 | 1 |
+| خفيف | 3000 mm/s | 8% | 50 kHz | من اختبار المسافة | 1 |
+| متوسط | 3000 mm/s | 12% | 50 kHz | من اختبار المسافة | 1 |
+| أقوى | 2500–3000 mm/s | 16% | 50 kHz | من اختبار المسافة | 1 |
 
-- لو النقط متضخمة أو الصورة موحلة: قلّل الطاقة أولًا، أو ارفع السرعة، ولا تزود سواد الملف.
-- لو الصورة خفيفة والنقط واضحة منفصلة: ارفع الطاقة تدريجيًا.
-- لو الخطوط تتراكب: لا ترفع DPI؛ جرّب 300 DPI أو اختبر Line Interval أكبر.
-- ثبّت الفوكس واستواء المحفظة. يمكن تجربة إبعاد بسيط جدًا بعد نجاح المعايرة الأساسية فقط.
-- لا تحفر PVC أو جلدًا صناعيًا مجهول التركيب، واستخدم شفط أبخرة وحماية مناسبة.
+- إذا اتسعت الخطوط أو اسود الجلد: قلّل Power أو ارفع Speed، ثم أعد اختبار المسافة.
+- إذا كانت الخطوط واضحة لكن خفيفة: ارفع Power تدريجيًا بخطوات صغيرة.
+- إذا اختفت الخطوط الرفيعة: جرّب `Etched Crosshatch` أو ارفع قوة الخطوط درجة واحدة، لا تحوّل الصورة إلى Photo أسود.
+- ثبّت الفوكس واستواء سطح المحفظة.
+- لا تحفر جلدًا صناعيًا يحتوي PVC أو خامة مجهولة، واستخدم شفط أبخرة وحماية مناسبة.
 
-## لماذا 333 DPI؟
+## ما الذي أضافه البحث إلى المحرك؟
 
-العلاقة هي:
-
-`Line Interval (mm) = 25.4 / DPI`
-
-وبالتالي 333 DPI تعني نحو 0.076 mm بين النقط/السطور. زيادة DPI ليست دائمًا جودة أعلى؛ إذا أصبحت المسافة أصغر من العلامة الفعلية على الجلد، تتداخل الضربات وتتحول الصورة إلى سواد موحل.
-
-## البرامج والخدمات التي تمت مقارنتها
-
-- EZCAD: يدعم Gray وDither وDrill Mode وPixel Power Mapping، لكن لا ينبغي تكرار المعالجة عند استيراد ملف منقّط جاهز.
-- LightBurn: Threshold وOrdered وFloyd-Steinberg وStucki وJarvis وNewsprint وHalftone، مع Pass-Through للصور المجهزة مسبقًا.
-- PhotoGrav: تنقيط diffusion محسّن حسب الخامة مع تحكم في الكثافة.
-- 1-Touch Laser Photo من ULS: يحول الصور إلى single-bit raster ويختار screen حسب الخامة.
-- Imag-R: تجهيز صور أونلاين حسب الليزر والخامة مع levels وcontrast وdithering.
-- LaserGRBL: تحويل grayscale أو 1-bit dithering؛ يوصي بالتنقيط عندما لا تستجيب الخامة خطيًا للطاقة.
-- GIMP: Newsprint clustered-dot ومرشحات الصورة العامة، لكنه يحتاج إعدادًا يدويًا للخامة.
+- `APDrawingGAN` وأبحاث Line Drawings للبورتريه: هوية الوجه تُحفظ بخطوط قليلة ومناطق ظل قليلة، لا بملء كل الظلال.
+- `Informative Drawings`: استخراج خطوط تنقل هندسة الصورة ومعناها بدون الحاجة إلى أزواج صور/رسومات متطابقة؛ استخدمناه كمسار AI داخل المتصفح.
+- `XDoG`: مرشح Difference-of-Gaussians الممتد قادر على إنتاج sketch وpencil shading وhatching وwoodcut؛ استخدمناه كأساس المسار المحلي.
+- `Coherent Line Drawing / FDoG`: اتجاه البنية يساعد على ربط الخطوط وتقليل الضوضاء؛ لذلك يطبق المحرك ترشيح حواف رفيعة وتهشيرًا موجهًا بدل نويز عشوائي.
+- `Combining Sketch and Tone`: فصل طبقة الخطوط عن طبقة التظليل يعطي تحكمًا أفضل؛ لذلك الخطوط والتهشير إعدادان مستقلان.
+- أبحاث dot-overlap وDirect Binary Search: نموذج الجهاز وعرض النقطة أهم من شكل البكسل النظري؛ لذلك توجد معايرة وAnti-Charcoal بعد تركيب النتيجة النهائية.
+- Blue Noise مناسب للنقط المنفردة المتجانسة، بينما Green Noise/clustered dots أثبت عندما لا تتحمل الخامة نقطة منفردة؛ لذلك ظل Ultra Photo يوفر Blue Noise وMicro Screen.
 
 ## المصادر الأساسية
 
-- JCZ EZCAD3 Operator Manual — Bitmap, Dither, Drill Mode, Pixel Power: https://www.omglaser.com/wp-content/uploads/2021/07/EZCAD3-User-Manual.pdf
-- LightBurn Image Mode: https://docs.lightburnsoftware.com/2.1/Reference/CutSettingsEditor/ImageMode/
+- APDrawingGAN — CVPR 2019: https://openaccess.thecvf.com/content_CVPR_2019/papers/Yi_APDrawingGAN_Generating_Artistic_Portrait_Drawings_From_Face_Photos_With_Hierarchical_CVPR_2019_paper.pdf
+- Line Drawings for Face Portraits: https://www.computer.org/csdl/journal/tp/2021/10/09069416/1j4FNWwfNtK
+- Informative Drawings — المشروع والبحث: https://carolineec.github.io/informative_drawings/
+- تطبيق JavaScript/ONNX المرجعي: https://github.com/josephrocca/image-to-line-art-js
+- XDoG paper: https://www.cs.princeton.edu/courses/archive/spring19/cos426/papers/Winnemoeller12.pdf
+- Coherent Line Drawing: https://cg.postech.ac.kr/papers/kang_npar07_hi.pdf
+- Combining Sketch and Tone for Pencil Drawing: https://www.cse.cuhk.edu.hk/~leojia/projects/pencilsketch/pencil_drawing.htm
+- Model-based halftoning with circular dot overlap: https://www.imaging.org/common/uploaded%20files/pdfs/Papers/1999/RP-0-93/1782.pdf
+- Green Noise Digital Halftoning: https://www.eecis.udel.edu/~arce/files/Publications/5-GreenNoise.pdf
+- Blue/Green Noise review: https://www.eecis.udel.edu/~arce/files/Publications/5-BlueGreen.pdf
+- Ulichney Blue Noise: https://cv.ulichney.com/papers/2006-hexagonal-blue-noise.pdf
+- LightBurn Image Mode وLine Interval: https://docs.lightburnsoftware.com/2.1/Reference/CutSettingsEditor/ImageMode/
 - LightBurn Perfect Image Engraving: https://docs.lightburnsoftware.com/2.1/Guides/PerfectImageEngraving/
-- LightBurn Interval Test: https://docs.lightburnsoftware.com/2.1/Reference/IntervalTest/
-- LaserGRBL Dithering: https://lasergrbl.com/usage/raster-image-import/dithering-tool/
-- PhotoGrav: https://www.photograv.com/
-- ULS 1-Touch Laser Photo: https://ulsinc.com/support/1-touch-laser.html
-- Imag-R: https://imag-r.com/
 - Trotec photo engraving: https://www.troteclaser.com/en-us/helpcenter/software/jobcontrol/photo-laser-engraving
-- Trotec leather processing: https://www.troteclaser.com/en-us/helpcenter/materials/material-usage-hints/laser-processing-leather
-- Fiber leather example and settings reference: https://www.barchlaser.com/fiber-laser-settings-for-natural-leather-engraving/
-- Video — complete photo engraving guide: https://www.youtube.com/watch?v=EB40S6AEVwE
-- Video — leather with a fiber laser: https://www.youtube.com/watch?v=0CskljdfHPg
+- ULS 1-Touch Laser Photo: https://ulsinc.com/support/1-touch-laser.html
+- EZCAD3 Operator Manual: https://www.omglaser.com/wp-content/uploads/2021/07/EZCAD3-User-Manual.pdf
 
-## حدود «الحل النهائي»
+## الحد الواقعي للحل
 
-الخوارزمية الآن تحل مشكلة الملف الأسود وتحافظ على الدرجات كنقط. أما لون وعمق كل نقطة فعليًا فيعتمدان على نوع الجلد وصبغته وطلائه والفوكس والعدسة ومصدر الفايبر؛ لذلك لا توجد قيمة Power واحدة تصلح لكل المحافظ. اختبار الكثافة على قصاصة من نفس المنتج هو آخر خطوة إلزامية قبل الإنتاج.
+V7 يعالج شكل الملف ويمنع تكوين الفحم رقميًا، لكنه لا يستطيع قياس كيمياء الجلد أو قطر العلامة من صورة الشاشة. النتيجة النهائية تعتمد على الجلد والطلاء والعدسة والفوكس ومصدر الليزر والطاقة والسرعة. اختبار المسافة وكارت الكثافة على قصاصة من نفس المنتج هما الجزء الأخير من الحل، وليس إعداد Power ثابتًا لكل المحافظ.

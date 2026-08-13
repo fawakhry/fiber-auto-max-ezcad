@@ -1,0 +1,31 @@
+MATBAAGY FIBER LASER — THIRD-PARTY NOTICES
+===========================================
+
+This web application can load open-source browser models and runtimes from their original distribution services.
+
+Informative Drawings
+Project: https://github.com/carolineec/informative-drawings
+License: MIT
+Copyright: the Informative Drawings authors and contributors.
+
+Image-to-Line-Art JavaScript / ONNX conversion reference
+Project: https://github.com/josephrocca/image-to-line-art-js
+License: MIT
+Copyright: Joseph Rocca and contributors.
+
+ONNX Runtime Web
+Project: https://github.com/microsoft/onnxruntime
+License: MIT
+Copyright: Microsoft Corporation and contributors.
+
+MediaPipe Tasks Vision
+Project: https://github.com/google-ai-edge/mediapipe
+License: Apache License 2.0
+Copyright: Google LLC and contributors.
+
+Transformers.js
+Project: https://github.com/huggingface/transformers.js
+License: Apache License 2.0
+Copyright: Hugging Face and contributors.
+
+The notices above do not change the licenses of the original works. See each linked project for the complete current license text and model-specific information.

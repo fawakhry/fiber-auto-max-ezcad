@@ -7,11 +7,11 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>مطبعجي فايبر ليزر V6.0.0 | استوديو الصور والمعايرة</title>
-  <link rel="stylesheet" href="styles.css?v=6.0.0">
+  <title>مطبعجي فايبر ليزر V7.0.0 | AI Wallet Sketch ومنع الفحم</title>
+  <link rel="stylesheet" href="styles.css?v=7.0.0">
   <script defer src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js" integrity="sha384-en/ztfPSRkGfME4KIm05joYXynqzUgbsG5nMrj/xEFAHXkeZfO3yMK8QQ+mP7p1/" crossorigin="anonymous"></script>
-  <script defer src="update-config.js?v=6.0.0"></script>
-  <script defer src="app.js?v=6.0.0"></script>
+  <script defer src="update-config.js?v=7.0.0"></script>
+  <script defer src="app.js?v=7.0.0"></script>
 </head>
 <body>
   <header class="topbar">
@@ -22,7 +22,7 @@
     <div class="top-pills">
       <span><i></i> معالجة داخل جهازك</span>
       <span>Fiber 30W</span>
-      <span id="versionLabel">V6.0.0</span><span style="border-color:#57d9ad;color:#57d9ad">CALIBRATED PHOTO</span>
+      <span id="versionLabel">V7.0.0</span><span style="border-color:#57d9ad;color:#57d9ad">AI WALLET SKETCH</span>
       <button id="updateBtn" class="update-btn" type="button">↻ فحص التحديث</button>
       <div id="modelBadge" class="model-badge" data-state="idle"><i></i><span>AI جاهز للتحميل</span></div>
     </div>
@@ -33,13 +33,13 @@
       <div class="home-copy">
         <span class="kicker">MATBAAGY · AI PORTRAIT STUDIO</span>
         <h1>اختار نوع الشغل،<br><em>والمكنة تاخد ملفها جاهز.</em></h1>
-        <p>ثلاثة مسارات للحفر على الفايبر: صورة شخص بمحرك تنقيط ذكي، صورة عين مستقلة، ومعمل معايرة يحوّل نتيجة جلدك ومكنتك إلى بريسيت دقيق.</p>
+        <p>ثلاثة مسارات للفايبر: بورتريه محفظة بخطوط قلم وتهشير خفيف بلا فحم، صورة عين مستقلة، ومعمل معايرة يحوّل استجابة جلدك ومكنتك إلى بريسيت دقيق.</p>
       </div>
       <div class="mode-grid">
         <button class="mode-card photo-mode" data-mode="photo">
           <span class="mode-number">01</span>
           <span class="mode-icon person-icon"><i></i></span>
-          <span class="mode-copy"><b>حفر صورة</b><small>ارفع صورة شخص · عزل AI · خلفية بيضاء مقصوصة · أبيض وأسود</small></span>
+          <span class="mode-copy"><b>رسم وحفر بورتريه</b><small>AI Line-Art · خطوط الوجه والملابس · تهشير خفيف · منع الفحم</small></span>
           <span class="mode-go">ابدأ الآن ←</span>
         </button>
         <button class="mode-card eye-mode" data-mode="eye">
@@ -80,7 +80,7 @@
           <div class="panel-section">
             <div class="section-title"><span>02</span><b>شكل الحفر</b></div>
             <div class="preset-list">
-              <label class="preset active"><input type="radio" name="preset" value="portrait" checked><i></i><span><b>Leather Photo</b><small>نقط فوتوغرافية بلا كتل</small></span></label>
+              <label class="preset active"><input type="radio" name="preset" value="portrait" checked><i></i><span><b>Wallet Portrait</b><small>الرسم الخطي المطلوب للمحفظة</small></span></label>
               <label class="preset"><input type="radio" name="preset" value="print"><i></i><span><b>Face Detail</b><small>ملامح وحدود أوضح</small></span></label>
               <label class="preset"><input type="radio" name="preset" value="deep"><i></i><span><b>Dark Material</b><small>كثافة أعلى بحماية الفحم</small></span></label>
               <label class="preset"><input type="radio" name="preset" value="soft"><i></i><span><b>Soft Leather</b><small>نقط أخف للجلد الحساس</small></span></label>
@@ -93,20 +93,34 @@
             <label>نعومة الحواف<input id="edgeSmoothRange" type="range" min="0" max="10" value="4"></label>
             <label>توزيع الإضاءة<input id="lightBalanceRange" type="range" min="0" max="10" value="8"></label>
             <label>تفاصيل الوجه<input id="faceDetailRange" type="range" min="1" max="10" value="7"></label>
+            <label>التفاصيل الدقيقة والملمس<input id="microDetailRange" type="range" min="0" max="10" value="8"></label>
+            <label>قوة خطوط الرسم<input id="lineStrengthRange" type="range" min="0" max="10" value="8"></label>
+            <label>تظليل وتهشير القلم<input id="hatchStrengthRange" type="range" min="0" max="10" value="4"></label>
+            <label>حماية من الفحم والكتل<input id="charcoalGuardRange" type="range" min="0" max="10" value="9"></label>
             <label>قوة الأسود<input id="blackStrengthRange" type="range" min="1" max="10" value="5"></label>
             <label>تعويض تمدد النقطة<input id="dotGrowthRange" type="range" min="0" max="10" value="4"></label>
             <small>الإضاءة تتوزع تلقائيًا لإخفاء الظلال والحروق. ارفع تنظيف الخلفية لو ظهر كرسي/حائط.</small>
           </div>
 
           <div class="panel-section compact-settings engine-settings">
-            <div class="section-title"><span>AI</span><b>محرك الصورة والمعايرة</b></div>
-            <label>محرك التنقيط<select id="algorithmSelect">
-              <option value="auto" selected>Auto Quality — يقارن ويختار</option>
-              <option value="jarvis">Jarvis — تدرج ناعم</option>
-              <option value="stucki">Stucki — صورة متوازنة</option>
-              <option value="atkinson">Atkinson — جلد حساس</option>
-              <option value="floyd">Floyd–Steinberg — حواف حادة</option>
-              <option value="finegrain">Fine Grain — نقط دقيقة منتظمة</option>
+            <div class="section-title"><span>AI</span><b>شكل النتيجة والمحرك</b></div>
+            <label>شكل الحفر<select id="algorithmSelect">
+              <optgroup label="رسم البورتريه مثل صور المحافظ">
+                <option value="sketch_ai" selected>AI Wallet Sketch — المطلوب والأفضل</option>
+                <option value="sketch_classic">XDoG Wallet Sketch — محلي بدون تنزيل موديل</option>
+                <option value="sketch_light">Clean Contour — خطوط خفيفة فقط</option>
+                <option value="sketch_etched">Etched Crosshatch — تهشير أوضح</option>
+              </optgroup>
+              <optgroup label="صورة فوتوغرافية منقطة">
+                <option value="photo_auto">Ultra Photo — يقارن 7 محركات</option>
+                <option value="jarvis">Jarvis — تدرج ناعم</option>
+                <option value="stucki">Stucki — صورة متوازنة</option>
+                <option value="atkinson">Atkinson — جلد حساس</option>
+                <option value="floyd">Floyd–Steinberg — حواف حادة</option>
+                <option value="finegrain">Fine Grain — نقط دقيقة منتظمة</option>
+                <option value="bluenoise">Blue Noise — نقط موزعة بلا نمط</option>
+                <option value="microscreen">Micro Screen 45° — أنصاف درجات ثابتة</option>
+              </optgroup>
             </select></label>
             <label>بريسيت المكنة/الخامة<select id="profileSelect"><option value="">Factory Leather — بدون معايرة</option></select></label>
             <small id="profileHint">لأفضل نتيجة: استخدم معمل المعايرة على قصاصة من نفس الجلد.</small>
@@ -126,7 +140,7 @@
             <div class="field-grid">
               <label>العرض mm<input id="targetWidth" type="number" min="5" max="300" step=".5" value="50"></label>
               <label>الارتفاع mm<input id="targetHeight" type="number" min="5" max="300" step=".5" value="70"></label>
-              <label>DPI<select id="dpiSelect"><option>300</option><option selected>333</option><option>400</option><option>500</option><option>600</option><option>800</option></select></label>
+              <label>DPI<select id="dpiSelect"><option>169</option><option>212</option><option>254</option><option>282</option><option>300</option><option selected>318</option><option>333</option><option>363</option><option>400</option><option>500</option><option>600</option><option>800</option></select></label>
             </div>
             <label class="check-row"><input id="lockRatio" type="checkbox" checked> تثبيت نسبة الصورة</label>
             <span class="line-space">Line Space: <b id="lineSpacePreview">0.051 mm</b></span>
@@ -135,13 +149,13 @@
 
           <div id="ezcadCard" class="settings-card">
             <strong id="materialName">جلد محفظة — صورة منقطة</strong>
-            <div><span>Power <b id="powerVal">8 / 12 / 16%</b></span><span>Speed <b id="speedVal">2500–3000</b></span><span>Frequency <b id="frequencyVal">50kHz</b></span><span>Line <b id="lineSpaceVal">0.076mm</b></span><span>DPI <b id="dpiVal">333</b></span><span>Loop <b id="loopVal">1</b></span></div>
+            <div><span>Power <b id="powerVal">8 / 12 / 16%</b></span><span>Speed <b id="speedVal">2500–3000</b></span><span>Frequency <b id="frequencyVal">50kHz</b></span><span>Line <b id="lineSpaceVal">0.080mm</b></span><span>DPI <b id="dpiVal">318</b></span><span>Loop <b id="loopVal">1</b></span></div>
             <p id="settingsNote"></p>
           </div>
           <div class="eye-ezcad-card photo-ezcad-card">
-            <strong>إعداد EZCAD للملف المنقّط الجاهز</strong>
+            <strong>إعداد EZCAD للملف الثنائي الجاهز</strong>
             <div><span>Fixed DPI <b>ON · نفس الملف</b></span><span>Drill Mode <b>ON</b></span><span>Gray <b>OFF</b></span><span>Dither <b>OFF</b></span><span>Lighten <b>OFF</b></span><span>Pixel Power <b>OFF</b></span></div>
-            <p>ممنوع معالجة الصورة مرة ثانية داخل EZCAD. ابدأ بطاقة 8% على قصاصة من نفس المحفظة ثم 12% ثم 16%.</p>
+            <p>ممنوع معالجة الصورة مرة ثانية داخل EZCAD. الملف فيه الخطوط/النقط النهائية بالفعل. ابدأ بطاقة 8% على قصاصة من نفس المحفظة ثم 12% ثم 16%.</p>
           </div>
 
           <button id="prepareBtn" class="primary-btn" disabled><span>عزل وتجهيز الصورة للفايبر</span><b>←</b></button>
@@ -164,10 +178,10 @@
           <div id="previewGrid" class="preview-grid" hidden>
             <article class="preview-card" data-card="original"><header><b>الصورة الأصلية</b><small>ORIGINAL</small></header><div class="canvas-wrap"><canvas id="originalCanvas"></canvas></div></article>
             <article class="preview-card" data-card="mask"><header><b>العزل على أبيض</b><small>AI CUTOUT</small></header><div id="maskCanvasWrap" class="canvas-wrap"><canvas id="maskCanvas"></canvas></div></article>
-            <article class="preview-card final-card" data-card="final"><header><b>نتيجة الحفر</b><small>PURE B/W</small></header><div class="canvas-wrap"><canvas id="finalCanvas"></canvas></div></article>
+            <article class="preview-card final-card" data-card="final"><header><b>نتيجة الحفر</b><small>AI SKETCH · PURE B/W</small></header><div class="canvas-wrap"><canvas id="finalCanvas"></canvas></div></article>
             <article class="preview-card leather-card" data-card="leather"><header><b>محاكاة على الجلد</b><small>BURN PREVIEW</small></header><div class="canvas-wrap leather-wrap"><canvas id="leatherCanvas"></canvas></div></article>
           </div>
-          <div id="resultStats" class="result-stats" hidden><span id="algorithmStat">Auto Quality</span><span id="qualityStat">تقييم الجودة —</span><span id="sizeStat">—</span><span id="faceStat">حماية الوجه</span><span id="inkStat">كثافة النقط —</span><span id="exportPxStat">—</span></div>
+          <div id="resultStats" class="result-stats" hidden><span id="algorithmStat">AI Wallet Sketch</span><span id="qualityStat">تقييم الجودة —</span><span id="sizeStat">—</span><span id="faceStat">حماية الوجه</span><span id="inkStat">تغطية الحفر —</span><span id="exportPxStat">—</span></div>
           <div id="exportBar" class="export-bar" hidden>
             <button id="cutoutBtn"><span>PNG</span> الشخص فقط أبيض</button><button id="pngBtn"><span>PNG</span> حفر منقّط</button><button id="bmpBtn" class="main-export"><span>BMP</span> EZCAD</button><button id="testCardBtn"><span>TEST</span> اختبار الجلد</button><button id="svgBtn"><span>SVG</span> فيكتور</button><button id="pdfBtn"><span>PDF</span> طباعة</button><button id="txtBtn"><span>TXT</span> إعداد EZCAD</button>
           </div>
@@ -187,10 +201,12 @@
             <label>اسم البريسيت<input id="profileName" value="جلد محفظة بيج"></label>
             <label>مصدر الفايبر<select id="laserSource"><option>MAX 30W</option><option>Raycus 30W</option><option>JPT 30W</option><option>Other Fiber</option></select></label>
             <label>العدسة<select id="lensSize"><option value="110">110×110 mm</option><option value="150" selected>150×150 mm</option><option value="175">175×175 mm</option><option value="200">200×200 mm</option></select></label>
-            <label>DPI الاختبار<select id="calibrationDpi"><option>250</option><option>300</option><option selected>333</option><option>400</option><option>500</option></select></label>
+            <label>DPI النهائي بعد اختبار المسافة<input id="calibrationDpi" type="number" min="150" max="800" step="1" value="318"></label>
             <label>Power المستخدم %<input id="calibrationPower" type="number" min="1" max="100" step=".5" value="12"></label>
+            <label>المسافة المختارة بين النقط<select id="measuredPitch"><option value="0.050">0.050 mm · 508 DPI</option><option value="0.060">0.060 mm · 423 DPI</option><option value="0.070">0.070 mm · 363 DPI</option><option value="0.076">0.076 mm · 334 DPI</option><option value="0.080" selected>0.080 mm · 318 DPI</option><option value="0.090">0.090 mm · 282 DPI</option><option value="0.100">0.100 mm · 254 DPI</option><option value="0.120">0.120 mm · 212 DPI</option><option value="0.150">0.150 mm · 169 DPI</option></select></label>
             <label>لون الجلد<input id="leatherColor" type="color" value="#b98756"></label>
           </div>
+          <button id="intervalExportBtn" class="secondary-action"><span>1) نزّل اختبار المسافة وحجم النقطة</span><b>↓</b></button>
           <button id="calibrationExportBtn" class="primary-btn"><span>نزّل كارت المعايرة 0–70%</span><b>↓</b></button>
           <div class="cal-note"><b>إعداد الحفر</b><p>استورد الكارت في EZCAD على Fixed DPI المكتوب، وشغّل Drill Mode فقط. Gray وDither وLighten وPixel Power كلهم OFF. احفره مرة واحدة بنفس Power/Speed/Frequency.</p></div>
         </aside>
