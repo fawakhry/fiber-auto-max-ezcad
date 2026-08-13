@@ -1,0 +1,6 @@
+{
+  "version": "5.6.3",
+  "title": "مطبعجي فايبر ليزر V5.6.3",
+  "notes": "إصدار التدرج الرمادي الناعم: صورة الشخص الآن تُحفر بنقاط Dithering تعطي تدرجًا رماديًا ناعمًا بدل الأسود/الأبيض الحاد، مع تفاصيل أعلى للوجه والشعر وتحسين إضاءة/تباين قبل الحفر. الملفات الجديدة app.v563.js/styles.v563.css لكسر الكاش.",
+  "downloadUrl": "https://github.com/fawakhry/fiber-auto-max-ezcad/archive/refs/heads/main.zip"
+}
