@@ -7,7 +7,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>مطبعجي فايبر ليزر V7.3.0 | AI Wallet Sketch ومنع الفحم</title>
+  <title>مطبعجي فايبر ليزر V7.4.1 | AI Wallet Sketch ومنع الفحم</title>
   <link rel="stylesheet" href="styles.css?v=7.0.0">
   <script defer src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js" integrity="sha384-en/ztfPSRkGfME4KIm05joYXynqzUgbsG5nMrj/xEFAHXkeZfO3yMK8QQ+mP7p1/" crossorigin="anonymous"></script>
   <script defer src="update-config.js?v=7.0.0"></script>
@@ -22,7 +22,7 @@
     <div class="top-pills">
       <span><i></i> معالجة داخل جهازك</span>
       <span>Fiber 30W</span>
-      <span id="versionLabel">V7.3.0</span><span style="border-color:#57d9ad;color:#57d9ad">WALLET TARGET</span>
+      <span id="versionLabel">V7.4.1</span><span style="border-color:#57d9ad;color:#57d9ad">RECTANGLE LOCK</span>
       <button id="updateBtn" class="update-btn" type="button">↻ فحص التحديث</button>
       <div id="modelBadge" class="model-badge" data-state="idle"><i></i><span>AI جاهز للتحميل</span></div>
     </div>
@@ -33,7 +33,7 @@
       <div class="home-copy">
         <span class="kicker">MATBAAGY · AI PORTRAIT STUDIO</span>
         <h1>اختار نوع الشغل،<br><em>والمكنة تاخد ملفها جاهز.</em></h1>
-        <p>مساران فقط للفايبر: بورتريه محفظة قريب من شكل الحفر الحقيقي، وعين محفظة مستطيلة مثل النتيجة المرجعية، مع أقل واجهة ممكنة.</p>
+        <p>مساران فقط: بورتريه محفظة بجلد أبيض وتفاصيل قليلة، وعين محفظة مستطيلة بنويز خفيف جدًا مثل المرجع.</p>
       </div>
       <div class="mode-grid">
         <button class="mode-card photo-mode" data-mode="photo">
@@ -83,7 +83,7 @@
 
           <div class="panel-section quality-controls">
             <div class="section-title"><span>Q</span><b>مستوى النتيجة</b></div>
-            <label>اختيار سريع<select id="simplePhotoStyle"><option value="soft">ناعم — جلد أبيض أكثر</option><option value="balanced" selected>متوسط — الأفضل غالبًا</option><option value="detailed">أوضح — تفاصيل أعلى</option></select></label>
+            <label>اختيار سريع<select id="simplePhotoStyle"><option value="soft">ناعم — جلد أبيض أكثر</option><option value="balanced" selected>متوسط — Skin White</option><option value="detailed">أوضح — بدون زحمة</option></select></label>
             <label>تنظيف الخلفية<input id="cleanupRange" type="range" min="1" max="10" value="6"></label>
             <label>نعومة الحواف<input id="edgeSmoothRange" type="range" min="0" max="10" value="4"></label>
             <label>توزيع الإضاءة<input id="lightBalanceRange" type="range" min="0" max="10" value="8"></label>
@@ -227,7 +227,7 @@
     <section id="eyeWorkspace" class="workspace eye-workspace" hidden>
       <div class="workspace-head">
         <button class="back-btn" data-home>→ رجوع للاختيارات</button>
-        <div><span>المسار 02</span><h2>حفر العين فقط</h2><p>ارفع صورة وجه كاملة أو عين مقصوصة، والنتيجة النهائية تظل مستطيلة وخفيفة مثل نقش المحفظة المرجعي.</p></div>
+        <div><span>المسار 02</span><h2>حفر العين فقط</h2><p>ارفع صورة وجه كاملة أو عين مقصوصة، والنتيجة النهائية للعين تبقى مستطيلة دائمًا بدون Crop نهائي.</p></div>
       </div>
       <div class="eye-grid">
         <aside class="eye-controls">
@@ -235,7 +235,7 @@
             <strong>مصدر الصورة</strong>
             <div>
               <label class="active"><input type="radio" name="eyeSourceMode" value="full" checked><span><b>صورة كاملة</b><small>يكتشف العينين داخل صورة الوجه</small></span></label>
-              <label><input type="radio" name="eyeSourceMode" value="crop"><span><b>عين مقصوصة</b><small>يحافظ على الشكل المستطيل كما رفعته</small></span></label>
+              <label><input type="radio" name="eyeSourceMode" value="crop"><span><b>عين مقصوصة</b><small>يحافظ على الشكل المستطيل كما رفعته — بدون قص نهائي</small></span></label>
             </div>
           </div>
           <label id="eyeDropZone" class="drop-zone eye-drop" for="eyeFileInput">
@@ -245,7 +245,7 @@
           <div id="eyeFileMeta" class="file-meta" hidden></div>
           <button id="eyeEnhanceBtn" class="ai-btn" disabled><span>✦</span><b>توضيح العين بالـ AI</b><small>تكبير ×2 وإظهار الجفن والقزحية</small></button>
           <div class="eye-options">
-            <label>اختيار سريع<select id="simpleEyeStyle"><option value="soft">ناعم — أبيض أكثر</option><option value="balanced" selected>متوسط — مثل المثال</option><option value="detailed">أوضح — تفاصيل أعلى</option></select></label>
+            <label>اختيار سريع<select id="simpleEyeStyle"><option value="soft">ناعم — أبيض أكثر</option><option value="balanced" selected>متوسط — مثل المرجع</option><option value="detailed">أوضح — بدون زحمة</option></select></label>
             <label>شكل الحفر<select id="eyeStyleSelect">
               <option value="wallet" selected>محفظة واقعية — نقط ناعمة</option>
               <option value="jarvis">تفاصيل فوتوغرافية — Jarvis</option>
@@ -270,11 +270,11 @@
           <div class="eye-ezcad-card">
             <strong>إعداد EZCAD للملف الجاهز</strong>
             <div><span>Fixed DPI <b id="eyeEzcadDpi">300 × 300</b></span><span>Final Size <b id="eyeSizePreview">65.0 mm · 768 px</b></span><span>Dither <b>OFF</b></span><span>Gray <b>OFF</b></span><span>Lighten <b>OFF</b></span><span>Pixel Power Adjust <b>OFF</b></span><span>Drill Mode <b>ON</b></span></div>
-            <p>البرنامج عمل التنقيط والإضاءة بالفعل. تشغيلهم مرة ثانية في EZCAD يضيّع العين ويغمّق المستطيل.</p>
+            <p>البرنامج عمل التنقيط والإضاءة بالفعل. الناتج النهائي مستطيل دائمًا، وتشغيل المعالجة مرة ثانية داخل EZCAD يضيّع العين ويغمّق المستطيل.</p>
           </div>
         </aside>
         <section class="eye-preview-area">
-          <div id="eyeEmpty" class="empty-state"><span class="empty-eye">◉</span><h3>اختر صورة العين</h3><p>ستظهر الرسمة مستطيلة وبها تفاصيل العين على أبيض.</p></div>
+          <div id="eyeEmpty" class="empty-state"><span class="empty-eye">◉</span><h3>اختر صورة العين</h3><p>ستظهر الرسمة مستطيلة دائمًا وبها تفاصيل العين على أبيض.</p></div>
           <div id="eyePreview" class="eye-preview-grid" hidden>
             <article class="preview-card"><header><b>صورة العين الأصلية</b><small>EYE SOURCE</small></header><div class="canvas-wrap"><canvas id="eyeOriginalCanvas"></canvas></div></article>
             <article id="eyeCard" class="preview-card final-card"><header><b>رسمة العين للحفر</b><small>EYE ENGRAVE</small></header><div class="canvas-wrap"><canvas id="eyeCanvas"></canvas></div></article>

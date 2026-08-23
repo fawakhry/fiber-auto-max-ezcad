@@ -1,5 +1,5 @@
 // MATBAAGY FIBER LASER 7.0.0 — AI line-art + calibrated anti-charcoal engraving studio
-const APP_VERSION = "7.3.0";
+const APP_VERSION = "7.4.1";
 const MP_VERSION = "0.10.35";
 const MP_MODULE = `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MP_VERSION}/vision_bundle.mjs`;
 const MP_WASM = `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MP_VERSION}/wasm`;
@@ -671,9 +671,61 @@ async function processMask(mask){
   const requested=ui.algorithmSelect?.value||"sketch_ai",sketchRequested=requested.startsWith("sketch");let selected,aiLine=null,halftone;
   if(sketchRequested){if(requested==="sketch_ai"){setProgress(87,"AI يحوّل البورتريه إلى خطوط ذات معنى · ولو تعذر يعمل XDoG تلقائيًا…");await tick();try{const ai=await lineArtAIGray(crop.source,crop.mask,crop.w,crop.h);aiLine=resizeGrayBilinear(ai.gray,ai.w,ai.h,target.w,target.h)}catch(e){console.warn("AI line-art fallback",e)}}setProgress(91,"بناء خطوط الوجه وتهشير القلم مع منع الفحم…");await tick();selected=selectBestSketch(sizedGray,tone,finalMask,target.w,target.h,targetFace,q,requested,aiLine);const sketchNames={contour:"Clean Contour",portrait:"Wallet Pencil",etched:"Etched Crosshatch"};halftone=`${sketchNames[selected.method]||selected.method}${selected.aiUsed?" · AI Line-Art":" · XDoG"}`}
   else{const photoMethod=requested==="photo_auto"?"auto":requested;setProgress(88,photoMethod==="auto"?"Ultra Photo يقارن 7 محركات بعد حماية التفاصيل…":"بناء النقط بالمحرك المختار…");await tick();selected=selectBestEngraving(tone,sourceGray,finalMask,target.w,target.h,targetFace,p,q,photoMethod);const names={finegrain:"Fine Grain",bluenoise:"Blue Noise",microscreen:"Micro Screen 45°"};halftone=HALFTONE_KERNELS[selected.method]?.label||names[selected.method]||selected.method}
-  const binary=selected.binary,quality=selected.quality,inkStats=photoInkStats(binary,finalMask,target.w,target.h);setProgress(96,sketchRequested?"فحص سماكة الخطوط وإزالة أي نواة سوداء…":"فحص الطيات والحواف والتكتلات في النتيجة النهائية…");await tick();Object.assign(state,{binary,finalMask,width:target.w,height:target.h,face,inkStats,qualityScore:quality.score,selectedAlgorithm:selected.method,selectedStyle:sketchRequested?"portrait-sketch":"photo-halftone",inverted:false,sourceProcessSize:{w:crop.w,h:crop.h},exportMeta:{...target,material:ui.materialSelect?.value||"leather_wallet",halftone,style:sketchRequested?"Portrait line-art + sparse hatching":"Calibrated photo halftone",algorithm:selected.method,aiLineArt:!!selected.aiUsed,qualityScore:quality.score,edgeRetention:quality.edgeRetention,solidRatio:quality.solidRatio??0,inkCoverage:inkStats.coverage,profile:state.activeCalibration?.name||"Factory Leather",dotGrowth:q.dotGrowth,microDetail:q.microDetail,lineStrength:q.lineStrength,hatchStrength:q.hatchStrength,charcoalGuard:q.charcoalGuard}});
+  const binary=walletTargetClean(selected.binary,tone,finalMask,target.w,target.h,targetFace,q),quality=scoreLaserSketch(binary,binary,tone,finalMask,target.w,target.h,targetFace,q),inkStats=photoInkStats(binary,finalMask,target.w,target.h);setProgress(96,sketchRequested?"فحص سماكة الخطوط وإزالة أي نواة سوداء…":"فحص الطيات والحواف والتكتلات في النتيجة النهائية…");await tick();Object.assign(state,{binary,finalMask,width:target.w,height:target.h,face,inkStats,qualityScore:quality.score,selectedAlgorithm:selected.method,selectedStyle:sketchRequested?"portrait-sketch":"photo-halftone",inverted:false,sourceProcessSize:{w:crop.w,h:crop.h},exportMeta:{...target,material:ui.materialSelect?.value||"leather_wallet",halftone,style:sketchRequested?"Portrait line-art + sparse hatching":"Calibrated photo halftone",algorithm:selected.method,aiLineArt:!!selected.aiUsed,qualityScore:quality.score,edgeRetention:quality.edgeRetention,solidRatio:quality.solidRatio??0,inkCoverage:inkStats.coverage,profile:state.activeCalibration?.name||"Factory Leather",dotGrowth:q.dotGrowth,microDetail:q.microDetail,lineStrength:q.lineStrength,hatchStrength:q.hatchStrength,charcoalGuard:q.charcoalGuard}});
   renderMask();renderFinal();if(!pureBinary()||inkStats.maxTileCoverage>(sketchRequested ? .48 : .80))throw Error("Engraving validation failed");setProgress(100,sketchRequested?"جاهز لـ EZCAD — رسم المحفظة بلا كتل فحم":"جاهز لـ EZCAD — Ultra Photo محفوظ في ملف النقط");ui.resultStats.hidden=false;ui.exportBar.hidden=false;ui.invertBtn.disabled=false;ui.sizeStat.textContent=`${target.w} × ${target.h} px`;ui.faceStat.textContent=face.detected?"تم اكتشاف الوجه وحماية ملامحه":"حماية الوجه التقديرية فعّالة";if(ui.algorithmStat)ui.algorithmStat.textContent=halftone;if(ui.qualityStat)ui.qualityStat.textContent=`جودة ${quality.score}/100 · تفاصيل ${Math.round(quality.edgeRetention*100)}% · ${quality.score>=82?"ممتاز":quality.score>=68?"جيد":"راجع المعايرة"}`;if(ui.inkStat)ui.inkStat.textContent=`تغطية الحفر ${(inkStats.coverage*100).toFixed(0)}% · أقصى كتلة ${(inkStats.maxTileCoverage*100).toFixed(0)}%${sketchRequested?` · مصمت ${((quality.solidRatio||0)*100).toFixed(1)}%`:""}`;updateEzcadPanel();
 }
+
+function countBlackNeighbors(binary,w,h,x,y){let n=0;for(let yy=-1;yy<=1;yy++)for(let xx=-1;xx<=1;xx++){if(!xx&&!yy)continue;const nx=x+xx,ny=y+yy;if(nx>=0&&nx<w&&ny>=0&&ny<h&&binary[ny*w+nx]===0)n++;}return n;}
+function walletTargetClean(binary,tone,mask,w,h,face,q=qualitySettings()){
+  let out=binary.slice();
+  for(let pass=0;pass<2;pass++){
+    const src=out.slice();
+    for(let y=1;y<h-1;y++)for(let x=1;x<w-1;x++){
+      const i=y*w+x;if(!mask[i]||src[i]!==0)continue;
+      const n=countBlackNeighbors(src,w,h,x,y),faceArea=inFace(x,y,face),light=tone[i]>188,veryLight=tone[i]>218;
+      if(n===0){out[i]=255;continue;}
+      if(veryLight&&n<=3){out[i]=255;continue;}
+      if(light&&n<=1){out[i]=255;continue;}
+      if(faceArea&&tone[i]>165&&n<=2){out[i]=255;continue;}
+    }
+  }
+  const edgeLimit=face?18:22;
+  for(let y=1;y<h-1;y++)for(let x=1;x<w-1;x++){
+    const i=y*w+x;if(!mask[i])continue;
+    const gx=-tone[i-w-1]-2*tone[i-1]-tone[i+w-1]+tone[i-w+1]+2*tone[i+1]+tone[i+w+1];
+    const gy=-tone[i-w-1]-2*tone[i-w]-tone[i-w+1]+tone[i+w-1]+2*tone[i+w]+tone[i+w+1];
+    const edge=(Math.abs(gx)+Math.abs(gy))/4;
+    if(edge>(inFace(x,y,face)?edgeLimit:24)&&tone[i]<230)out[i]=0;
+  }
+  out=limitInkTiles(out,tone,mask,w,h,.20);
+  const src=out.slice();
+  for(let y=1;y<h-1;y++)for(let x=1;x<w-1;x++){
+    const i=y*w+x;if(!mask[i]||src[i]!==0)continue;
+    const n=countBlackNeighbors(src,w,h,x,y);
+    if(n<=1&&tone[i]>145)out[i]=255;
+  }
+  for(let i=0;i<out.length;i++)if(!mask[i])out[i]=255;
+  return out;
+}
+function walletEyeReferenceFilter(binary,tone,gray,focus,w,h,detail=8){
+  const out=binary.slice();
+  for(let y=1;y<h-1;y++)for(let x=1;x<w-1;x++){
+    const i=y*w+x;if(out[i]!==0)continue;
+    const n=countBlackNeighbors(binary,w,h,x,y);
+    if(focus[i]<.18){out[i]=255;continue;}
+    if(tone[i]>205&&n<=4){out[i]=255;continue;}
+    if(tone[i]>175&&n<=1){out[i]=255;continue;}
+  }
+  for(let y=1;y<h-1;y++)for(let x=1;x<w-1;x++){
+    const i=y*w+x;if(focus[i]<.23)continue;
+    const gx=-gray[i-w-1]-2*gray[i-1]-gray[i+w-1]+gray[i-w+1]+2*gray[i+1]+gray[i+w+1];
+    const gy=-gray[i-w-1]-2*gray[i-w]-gray[i-w+1]+gray[i+w-1]+2*gray[i+w]+gray[i+w+1];
+    const edge=(Math.abs(gx)+Math.abs(gy))/4;
+    if(edge>(30-detail*1.2)&&tone[i]<215)out[i]=0;
+  }
+  return out;
+}
+
 async function autoPrepare(){
   if(!state.source||state.processing)return;const target=updateTargetValidation();if(!target.valid)return showToast(target.error,true);state.processing=true;ui.prepareBtn.disabled=true;ui.resultStats.hidden=true;ui.exportBar.hidden=true;ui.invertBtn.disabled=true;
   try{setProgress(8,"تحميل محرك Person Segmentation…");await tick();setProgress(18,"عزل الشخص الأساسي من الخلفية…");const segmented=await personMask();state.mask=segmented.mask;state.alpha=segmented.alpha;state.cutout=buildWhiteCutout(state.mask,state.alpha);setProgress(38,"تنظيف الحواف وقص الصورة على خلفية بيضاء…");await tick();state.manual=false;ui.manualPanel.hidden=true;ui.maskCanvasWrap.classList.remove("editing");renderMask();await processMask(state.mask);showToast("تم عزل الشخص على خلفية بيضاء مقصوصة بدون فريم زائد.")}
@@ -862,8 +914,9 @@ async function prepareEyes(){
       for(let i=0;i<binary.length;i++)if(focus[i]>.12&&(prepared.tone[i]<local[i]-(13-detail*.8)||prepared.tone[i]<global-30))binary[i]=0;
     }else binary=diffuseEye(prepared.tone,workW,workH,style==="jarvis"?"jarvis":"stucki",detail,density);
     reinforceEyeEdges(binary,prepared.tone,prepared.gray,focus,workW,workH,detail,style);cleanEyeDither(binary,prepared.tone,workW,workH,noise);
+    binary=walletEyeReferenceFilter(binary,prepared.tone,prepared.gray,focus,workW,workH,detail);
     for(let i=0;i<binary.length;i++)if(focus[i]<.035)binary[i]=255;
-    const finalH=Math.max(1,Math.round(finalW*workH/workW)),sizeError=validatePixelSize(finalW,finalH);if(sizeError){const error=Error(sizeError);error.code="INVALID_EXPORT_SIZE";throw error}const finalBinary=resizeBinaryNearest(binary,workW,workH,finalW,finalH),heightMm=pxToMm(finalH,dpi);Object.assign(state,{eyeBinary:finalBinary,eyeWidth:finalW,eyeHeight:finalH,eyeExportMeta:{w:finalW,h:finalH,wmm:widthMm,hmm:heightMm,dpi,lineSpace:lineSpaceFromDpi(dpi)}});renderEye();ui.eyePngBtn.disabled=false;ui.eyeSvgBtn.disabled=false;updateEyeInputUI();modelStatus("ready",`رسمة العين المستطيلة جاهزة · ${dpi} DPI`);showToast(sourceMode==="full"?"تم اكتشاف العينين وتجهيزهما داخل إطار مستطيل بالمقاس الحقيقي.":"تم تجهيز العين المقصوصة داخل نفس الإطار المستطيل تقريبًا.")
+    const finalH=Math.max(1,Math.round(finalW*workH/workW)),sizeError=validatePixelSize(finalW,finalH);if(sizeError){const error=Error(sizeError);error.code="INVALID_EXPORT_SIZE";throw error}const finalBinary=resizeBinaryNearest(binary,workW,workH,finalW,finalH),heightMm=pxToMm(finalH,dpi);Object.assign(state,{eyeBinary:finalBinary,eyeWidth:finalW,eyeHeight:finalH,eyeExportMeta:{w:finalW,h:finalH,wmm:widthMm,hmm:heightMm,dpi,lineSpace:lineSpaceFromDpi(dpi)}});renderEye();ui.eyePngBtn.disabled=false;ui.eyeSvgBtn.disabled=false;updateEyeInputUI();modelStatus("ready",`رسمة العين المستطيلة المقفولة جاهزة · ${dpi} DPI`);showToast(sourceMode==="full"?"تم اكتشاف العينين وتجهيزهما داخل إطار مستطيل ثابت بدون قص نهائي.":"تم تجهيز العين المقصوصة داخل نفس الإطار المستطيل بدون أي Crop نهائي.")
   }catch(e){console.error(e);const message=e?.message==="FULL_FACE_NOT_FOUND"?"لم أجد وجهًا واضحًا في الصورة. اختر صورة أمامية أو استخدم اختيار «عين مقصوصة».":e?.code==="INVALID_EXPORT_SIZE"?e.message:"تفاصيل العين غير كافية. جرّب صورة أوضح أو استخدم AI توضيح أولًا.";showToast(message,true)}finally{state.processing=false;ui.eyeBtn.disabled=false}
 }
 function eyeSvgPath(){return runsToSvgPath(state.eyeBinary,state.eyeWidth,state.eyeHeight,value=>value===0)}
@@ -883,11 +936,11 @@ function setSelectValueSafe(el,val){if(el)el.value=String(val)}
 function setPresetRadio(value){document.querySelectorAll('input[name="preset"]').forEach(input=>{input.checked=input.value===value; input.closest('.preset')?.classList.toggle('active', input.checked);});}
 function applySimplePhotoStyle(mode="balanced",silent=false){
   setPresetRadio("portrait");
-  setSelectValueSafe(ui.algorithmSelect,"sketch_ai");
+  setSelectValueSafe(ui.algorithmSelect,"sketch_light");
   setSelectValueSafe(ui.materialSelect,"leather_wallet");
   if(mode==="soft"){setRangeValue(ui.cleanupRange,7);setRangeValue(ui.edgeSmoothRange,5);setRangeValue(ui.lightBalanceRange,9);setRangeValue(ui.faceDetailRange,8);setRangeValue(ui.microDetailRange,6);setRangeValue(ui.lineStrengthRange,7);setRangeValue(ui.hatchStrengthRange,1);setRangeValue(ui.charcoalGuardRange,10);setRangeValue(ui.blackStrengthRange,2);setRangeValue(ui.dotGrowthRange,1);}
-  else if(mode==="detailed"){setRangeValue(ui.cleanupRange,6);setRangeValue(ui.edgeSmoothRange,4);setRangeValue(ui.lightBalanceRange,8);setRangeValue(ui.faceDetailRange,9);setRangeValue(ui.microDetailRange,8);setRangeValue(ui.lineStrengthRange,8);setRangeValue(ui.hatchStrengthRange,2);setRangeValue(ui.charcoalGuardRange,9);setRangeValue(ui.blackStrengthRange,3);setRangeValue(ui.dotGrowthRange,2);}
-  else {setRangeValue(ui.cleanupRange,6);setRangeValue(ui.edgeSmoothRange,4);setRangeValue(ui.lightBalanceRange,9);setRangeValue(ui.faceDetailRange,8);setRangeValue(ui.microDetailRange,7);setRangeValue(ui.lineStrengthRange,8);setRangeValue(ui.hatchStrengthRange,1);setRangeValue(ui.charcoalGuardRange,10);setRangeValue(ui.blackStrengthRange,2);setRangeValue(ui.dotGrowthRange,1);}
+  else if(mode==="detailed"){setRangeValue(ui.cleanupRange,6);setRangeValue(ui.edgeSmoothRange,4);setRangeValue(ui.lightBalanceRange,8);setRangeValue(ui.faceDetailRange,9);setRangeValue(ui.microDetailRange,8);setRangeValue(ui.lineStrengthRange,8);setRangeValue(ui.hatchStrengthRange,1);setRangeValue(ui.charcoalGuardRange,10);setRangeValue(ui.blackStrengthRange,2);setRangeValue(ui.dotGrowthRange,1);}
+  else {setRangeValue(ui.cleanupRange,6);setRangeValue(ui.edgeSmoothRange,4);setRangeValue(ui.lightBalanceRange,9);setRangeValue(ui.faceDetailRange,8);setRangeValue(ui.microDetailRange,7);setRangeValue(ui.lineStrengthRange,7);setRangeValue(ui.hatchStrengthRange,0);setRangeValue(ui.charcoalGuardRange,10);setRangeValue(ui.blackStrengthRange,1);setRangeValue(ui.dotGrowthRange,0);}
   if(!silent) invalidatePhotoResult("تم تطبيق إعداد بورتريه المحفظة.");
 }
 function applySimpleEyeStyle(mode="balanced",silent=false){
