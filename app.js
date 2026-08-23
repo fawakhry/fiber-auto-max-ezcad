@@ -1,5 +1,5 @@
-// MATBAAGY FIBER LASER 7.0.0 — AI line-art + calibrated anti-charcoal engraving studio
-const APP_VERSION = "7.0.0";
+// MATBAAGY FIBER LASER 7.1.0 — AI line-art + calibrated anti-charcoal engraving studio
+const APP_VERSION = "7.2.0";
 const MP_VERSION = "0.10.35";
 const MP_MODULE = `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MP_VERSION}/vision_bundle.mjs`;
 const MP_WASM = `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MP_VERSION}/wasm`;
@@ -107,20 +107,20 @@ const currentPreset = () => PRESETS[document.querySelector('input[name="preset"]
 const qualitySettings = () => ({
   cleanup: clamp(parseInt(ui.cleanupRange?.value || 6,10) || 6,1,10),
   edgeSmooth: clamp(parseInt(ui.edgeSmoothRange?.value || 4,10) || 0,0,10),
-  lightBalance: clamp(parseInt(ui.lightBalanceRange?.value || 8,10) || 0,0,10),
-  faceDetail: clamp(parseInt(ui.faceDetailRange?.value || 7,10) || 7,1,10),
-  microDetail: clamp(parseInt(ui.microDetailRange?.value || 8,10) || 0,0,10),
+  lightBalance: clamp(parseInt(ui.lightBalanceRange?.value || 9,10) || 0,0,10),
+  faceDetail: clamp(parseInt(ui.faceDetailRange?.value || 9,10) || 9,1,10),
+  microDetail: clamp(parseInt(ui.microDetailRange?.value || 6,10) || 0,0,10),
   lineStrength: clamp(parseInt(ui.lineStrengthRange?.value || 8,10) || 0,0,10),
-  hatchStrength: clamp(parseInt(ui.hatchStrengthRange?.value || 4,10) || 0,0,10),
-  charcoalGuard: clamp(parseInt(ui.charcoalGuardRange?.value || 9,10) || 0,0,10),
-  blackStrength: clamp(parseInt(ui.blackStrengthRange?.value || 5,10) || 5,1,10),
-  dotGrowth: clamp(parseInt(ui.dotGrowthRange?.value || 4,10) || 0,0,10)
+  hatchStrength: clamp(parseInt(ui.hatchStrengthRange?.value || 1,10) || 0,0,10),
+  charcoalGuard: clamp(parseInt(ui.charcoalGuardRange?.value || 10,10) || 0,0,10),
+  blackStrength: clamp(parseInt(ui.blackStrengthRange?.value || 2,10) || 2,1,10),
+  dotGrowth: clamp(parseInt(ui.dotGrowthRange?.value || 3,10) || 0,0,10)
 });
-const currentEyeSourceMode=()=>document.querySelector('input[name="eyeSourceMode"]:checked')?.value||"full";
+const currentEyeSourceMode=()=>document.querySelector('input[name="eyeSourceMode"]:checked')?.value||"crop";
 function updateEyeInputUI(){
   const full=currentEyeSourceMode()==="full";
-  if(ui.eyeDropTitle)ui.eyeDropTitle.textContent=full?"اختر صورة الوجه كاملة":"اختر صورة العين المقصوصة";
-  if(ui.eyeDropHint)ui.eyeDropHint.textContent=full?"البرنامج سيكتشف العينين ويقصهما تلقائيًا":"ارفع العين أو العينين بعد قصهما يدويًا";
+  if(ui.eyeDropTitle)ui.eyeDropTitle.textContent=full?"اختر صورة الوجه كاملة":"اختر صورة العين المستطيلة";
+  if(ui.eyeDropHint)ui.eyeDropHint.textContent=full?"البرنامج سيكتشف العينين ويقصهما تلقائيًا":"سيتم تجهيزها بنفس المستطيل بدون قص تلقائي";
   if(ui.eyeEzcadDpi){const dpi=+ui.eyeDpiSelect?.value||300;ui.eyeEzcadDpi.textContent=`${dpi} × ${dpi}`}
   if(ui.eyeSizePreview){const dpi=clamp(+ui.eyeDpiSelect?.value||300,300,600),wmm=clamp(+ui.eyeWidthMm?.value||65,15,150),w=Math.round(wmm/25.4*dpi),meta=state.eyeExportMeta;ui.eyeSizePreview.textContent=meta?`${meta.wmm.toFixed(1)}×${meta.hmm.toFixed(1)} mm · ${meta.w}×${meta.h} px`:`${wmm.toFixed(1)} mm · ${w} px`}
   document.querySelectorAll(".eye-source-choice label").forEach(label=>label.classList.toggle("active",!!label.querySelector("input:checked")));
@@ -575,16 +575,32 @@ function extractSketchLines(gray,mask,w,h,face,q=qualitySettings(),aiLine=null){
 }
 function hatchCoordinate(x,y,gx,gy,secondary=false){const ax=Math.abs(gx),ay=Math.abs(gy);if(secondary){if(ax>ay)return x+y;return x-y}if(ax>ay*1.7)return y;if(ay>ax*1.7)return x;return gx*gy>=0?x-y:x+y}
 function addSketchHatching(binary,lineLayer,tone,mask,w,h,face,field,q,style="portrait"){
-  const amount=style==="contour"?0:style==="etched"?1.28:1,basePeriod=clamp(Math.round(12-q.hatchStrength*.48),6,12);if(!amount)return binary;for(let y=1;y<h-1;y++)for(let x=1;x<w-1;x++){const i=y*w+x;if(!mask[i]||lineLayer[i])continue;let darkness=(255-tone[i])/255;if(inFace(x,y,face))darkness*=.67;const localAmount=clamp((darkness-.16)*amount*(.82+q.hatchStrength*.055),0,.92);if(localAmount<=.025)continue;const period=clamp(Math.round(basePeriod-darkness*3),5,13),phase=((Math.floor(x/24)*11+Math.floor(y/24)*7)%period+period)%period,coord=hatchCoordinate(x,y,field.gx[i],field.gy[i]),rank=(BLUE_NOISE_MATRIX[(y&15)*16+(x&15)]+.5)/256,hit=((coord+phase)%period+period)%period===0&&rank<clamp(localAmount*1.22,.08,.94),cross=darkness>.48&&style!=="contour"&&(((hatchCoordinate(x,y,field.gx[i],field.gy[i],true)+phase*2)%Math.max(6,period+2)+Math.max(6,period+2))%Math.max(6,period+2)===0)&&rank<clamp((localAmount-.25)*.82,0,.55),stipple=!hit&&!cross&&darkness>.26&&rank<clamp((darkness-.24)*.045*amount,0,.032);if(hit||cross||stipple)binary[i]=0}return binary;
+  // Skin White Mode: keep skin almost white; only meaningful facial lines/details remain.
+  const amount=style==="contour"?.10:style==="etched"?.55:.24,basePeriod=clamp(Math.round(20-q.hatchStrength*.75),11,22);if(!amount)return binary;
+  for(let y=1;y<h-1;y++)for(let x=1;x<w-1;x++){
+    const i=y*w+x;if(!mask[i]||lineLayer[i])continue;
+    let darkness=(255-tone[i])/255,facePixel=inFace(x,y,face);
+    if(facePixel)darkness*=.10; // white skin / ultra-light noise only
+    const localAmount=clamp((darkness-.32)*amount*(.42+q.hatchStrength*.035),0,.32);
+    if(localAmount<=.035)continue;
+    const period=clamp(Math.round(basePeriod-darkness*2),9,24),phase=((Math.floor(x/26)*11+Math.floor(y/26)*7)%period+period)%period,coord=hatchCoordinate(x,y,field.gx[i],field.gy[i]),rank=(BLUE_NOISE_MATRIX[(y&15)*16+(x&15)]+.5)/256;
+    const hit=((coord+phase)%period+period)%period===0&&rank<clamp(localAmount*.72,.015,.26);
+    const cross=!facePixel&&darkness>.62&&style==="etched"&&(((hatchCoordinate(x,y,field.gx[i],field.gy[i],true)+phase*2)%Math.max(10,period+3)+Math.max(10,period+3))%Math.max(10,period+3)===0)&&rank<clamp((localAmount-.20)*.38,0,.14);
+    const stipple=!hit&&!cross&&darkness>.46&&rank<clamp((darkness-.42)*.010*amount,0,.010);
+    if(hit||cross||stipple)binary[i]=0;
+  }
+  return binary;
 }
 function antiCharcoalSketch(binary,lineLayer,tone,mask,w,h,q=qualitySettings(),style="portrait"){
-  const passes=Math.max(1,Math.round((q.charcoalGuard||8)/4));for(let pass=0;pass<passes;pass++){const source=binary.slice();for(let y=1;y<h-1;y++)for(let x=1;x<w-1;x++){const i=y*w+x;if(!mask[i]||source[i]!==0)continue;let neighbors=0;for(let yy=-1;yy<=1;yy++)for(let xx=-1;xx<=1;xx++)if((xx||yy)&&source[i+yy*w+xx]===0)neighbors++;if(neighbors>=6){const keep=lineLayer[i]&&neighbors<8&&((x+y+pass)&1);if(!keep)binary[i]=255}}}
-  const maxCoverage=clamp((style==="etched" ? .43 : style==="contour" ? .29 : .36)-(q.charcoalGuard||8)*.008+(q.blackStrength||5)*.006,.24,.43);return limitInkTiles(binary,tone,mask,w,h,maxCoverage);
+  const passes=Math.max(2,Math.round((q.charcoalGuard||10)/3));
+  for(let pass=0;pass<passes;pass++){const source=binary.slice();for(let y=1;y<h-1;y++)for(let x=1;x<w-1;x++){const i=y*w+x;if(!mask[i]||source[i]!==0)continue;let neighbors=0;for(let yy=-1;yy<=1;yy++)for(let xx=-1;xx<=1;xx++)if((xx||yy)&&source[i+yy*w+xx]===0)neighbors++;if(neighbors>=5){const keep=lineLayer[i]&&neighbors<7&&((x+y+pass)&1);if(!keep)binary[i]=255}}}
+  const maxCoverage=clamp((style==="etched" ? .24 : style==="contour" ? .14 : .18)-(q.charcoalGuard||10)*.006+(q.blackStrength||2)*.003,.08,.24);
+  return limitInkTiles(binary,tone,mask,w,h,maxCoverage);
 }
 function scoreLaserSketch(binary,lineLayer,tone,mask,w,h,face,q=qualitySettings()){
   const stats=photoInkStats(binary,mask,w,h);let reference=0,hits=0,blocks=0,solid=0,darkBlack=0,darkTotal=0,lightBlack=0,lightTotal=0,faceBlack=0,faceTotal=0;for(let y=1;y<h-1;y++)for(let x=1;x<w-1;x++){const i=y*w+x;if(!mask[i])continue;if(lineLayer[i]){reference++;let hit=0;for(let yy=-1;yy<=1&&!hit;yy++)for(let xx=-1;xx<=1;xx++)if(binary[i+yy*w+xx]===0){hit=1;break}hits+=hit}if(tone[i]<145){darkTotal++;if(binary[i]===0)darkBlack++}if(tone[i]>215){lightTotal++;if(binary[i]===0)lightBlack++}if(inFace(x,y,face)){faceTotal++;if(binary[i]===0)faceBlack++}}
   for(let y=0;y<h-1;y+=2)for(let x=0;x<w-1;x+=2){const ids=[y*w+x,y*w+x+1,(y+1)*w+x,(y+1)*w+x+1];if(ids.every(i=>mask[i])){blocks++;if(ids.every(i=>binary[i]===0))solid++}}
-  const edgeRetention=reference?hits/reference:1,solidRatio=blocks?solid/blocks:0,darkCoverage=darkTotal?darkBlack/darkTotal:0,lightCoverage=lightTotal?lightBlack/lightTotal:0,toneSeparation=clamp((darkCoverage-lightCoverage)/.18,0,1),faceCoverage=faceTotal?faceBlack/faceTotal:stats.coverage,target=clamp(.135+(q.hatchStrength||4)*.009+(q.lineStrength||8)*.004,.15,.28),score=clamp(Math.round(100-Math.abs(stats.coverage-target)*74-Math.max(0,stats.maxTileCoverage-.40)*180-solidRatio*900-(1-edgeRetention)*28-(1-toneSeparation)*8-Math.max(0,faceCoverage-.34)*70),0,100);return{score,edgeRetention,solidRatio,toneSeparation,faceCoverage,darkCoverage,lightCoverage,...stats};
+  const edgeRetention=reference?hits/reference:1,solidRatio=blocks?solid/blocks:0,darkCoverage=darkTotal?darkBlack/darkTotal:0,lightCoverage=lightTotal?lightBlack/lightTotal:0,toneSeparation=clamp((darkCoverage-lightCoverage)/.14,0,1),faceCoverage=faceTotal?faceBlack/faceTotal:stats.coverage,target=clamp(.075+(q.hatchStrength||1)*.004+(q.lineStrength||8)*.003,.08,.17),score=clamp(Math.round(100-Math.abs(stats.coverage-target)*85-Math.max(0,stats.maxTileCoverage-.24)*260-solidRatio*1200-(1-edgeRetention)*24-(1-toneSeparation)*6-Math.max(0,faceCoverage-.16)*140),0,100);return{score,edgeRetention,solidRatio,toneSeparation,faceCoverage,darkCoverage,lightCoverage,...stats};
 }
 function makeSketchCandidate(style,gray,tone,mask,w,h,face,q,base){
   const binary=new Uint8Array(gray.length);binary.fill(255);for(let i=0;i<binary.length;i++)if(base.lines[i])binary[i]=0;addSketchHatching(binary,base.lines,tone,mask,w,h,face,base.field,q,style);antiCharcoalSketch(binary,base.lines,tone,mask,w,h,q,style);const quality=scoreLaserSketch(binary,base.lines,tone,mask,w,h,face,q),styleBonus=style==="portrait"?2:style==="contour"&&q.hatchStrength<=2?1:0;return{method:style,binary,quality,rankScore:quality.score+styleBonus};
@@ -671,8 +687,8 @@ async function processMask(mask){
   const requested=ui.algorithmSelect?.value||"sketch_ai",sketchRequested=requested.startsWith("sketch");let selected,aiLine=null,halftone;
   if(sketchRequested){if(requested==="sketch_ai"){setProgress(87,"AI يحوّل البورتريه إلى خطوط ذات معنى · ولو تعذر يعمل XDoG تلقائيًا…");await tick();try{const ai=await lineArtAIGray(crop.source,crop.mask,crop.w,crop.h);aiLine=resizeGrayBilinear(ai.gray,ai.w,ai.h,target.w,target.h)}catch(e){console.warn("AI line-art fallback",e)}}setProgress(91,"بناء خطوط الوجه وتهشير القلم مع منع الفحم…");await tick();selected=selectBestSketch(sizedGray,tone,finalMask,target.w,target.h,targetFace,q,requested,aiLine);const sketchNames={contour:"Clean Contour",portrait:"Wallet Pencil",etched:"Etched Crosshatch"};halftone=`${sketchNames[selected.method]||selected.method}${selected.aiUsed?" · AI Line-Art":" · XDoG"}`}
   else{const photoMethod=requested==="photo_auto"?"auto":requested;setProgress(88,photoMethod==="auto"?"Ultra Photo يقارن 7 محركات بعد حماية التفاصيل…":"بناء النقط بالمحرك المختار…");await tick();selected=selectBestEngraving(tone,sourceGray,finalMask,target.w,target.h,targetFace,p,q,photoMethod);const names={finegrain:"Fine Grain",bluenoise:"Blue Noise",microscreen:"Micro Screen 45°"};halftone=HALFTONE_KERNELS[selected.method]?.label||names[selected.method]||selected.method}
-  const binary=selected.binary,quality=selected.quality,inkStats=photoInkStats(binary,finalMask,target.w,target.h);setProgress(96,sketchRequested?"فحص سماكة الخطوط وإزالة أي نواة سوداء…":"فحص الطيات والحواف والتكتلات في النتيجة النهائية…");await tick();Object.assign(state,{binary,finalMask,width:target.w,height:target.h,face,inkStats,qualityScore:quality.score,selectedAlgorithm:selected.method,selectedStyle:sketchRequested?"portrait-sketch":"photo-halftone",inverted:false,sourceProcessSize:{w:crop.w,h:crop.h},exportMeta:{...target,material:ui.materialSelect?.value||"leather_wallet",halftone,style:sketchRequested?"Portrait line-art + sparse hatching":"Calibrated photo halftone",algorithm:selected.method,aiLineArt:!!selected.aiUsed,qualityScore:quality.score,edgeRetention:quality.edgeRetention,solidRatio:quality.solidRatio??0,inkCoverage:inkStats.coverage,profile:state.activeCalibration?.name||"Factory Leather",dotGrowth:q.dotGrowth,microDetail:q.microDetail,lineStrength:q.lineStrength,hatchStrength:q.hatchStrength,charcoalGuard:q.charcoalGuard}});
-  renderMask();renderFinal();if(!pureBinary()||inkStats.maxTileCoverage>(sketchRequested ? .48 : .80))throw Error("Engraving validation failed");setProgress(100,sketchRequested?"جاهز لـ EZCAD — رسم المحفظة بلا كتل فحم":"جاهز لـ EZCAD — Ultra Photo محفوظ في ملف النقط");ui.resultStats.hidden=false;ui.exportBar.hidden=false;ui.invertBtn.disabled=false;ui.sizeStat.textContent=`${target.w} × ${target.h} px`;ui.faceStat.textContent=face.detected?"تم اكتشاف الوجه وحماية ملامحه":"حماية الوجه التقديرية فعّالة";if(ui.algorithmStat)ui.algorithmStat.textContent=halftone;if(ui.qualityStat)ui.qualityStat.textContent=`جودة ${quality.score}/100 · تفاصيل ${Math.round(quality.edgeRetention*100)}% · ${quality.score>=82?"ممتاز":quality.score>=68?"جيد":"راجع المعايرة"}`;if(ui.inkStat)ui.inkStat.textContent=`تغطية الحفر ${(inkStats.coverage*100).toFixed(0)}% · أقصى كتلة ${(inkStats.maxTileCoverage*100).toFixed(0)}%${sketchRequested?` · مصمت ${((quality.solidRatio||0)*100).toFixed(1)}%`:""}`;updateEzcadPanel();
+  const binary=selected.binary,quality=selected.quality,inkStats=photoInkStats(binary,finalMask,target.w,target.h);setProgress(96,sketchRequested?"فحص سماكة الخطوط وإزالة أي نواة سوداء…":"فحص الطيات والحواف والتكتلات في النتيجة النهائية…");await tick();Object.assign(state,{binary,finalMask,width:target.w,height:target.h,face,inkStats,qualityScore:quality.score,selectedAlgorithm:selected.method,selectedStyle:sketchRequested?"portrait-sketch":"photo-halftone",inverted:false,sourceProcessSize:{w:crop.w,h:crop.h},exportMeta:{...target,material:ui.materialSelect?.value||"leather_wallet",halftone,style:sketchRequested?"Skin white portrait + key details only":"Calibrated photo halftone",algorithm:selected.method,aiLineArt:!!selected.aiUsed,qualityScore:quality.score,edgeRetention:quality.edgeRetention,solidRatio:quality.solidRatio??0,inkCoverage:inkStats.coverage,profile:state.activeCalibration?.name||"Factory Leather",dotGrowth:q.dotGrowth,microDetail:q.microDetail,lineStrength:q.lineStrength,hatchStrength:q.hatchStrength,charcoalGuard:q.charcoalGuard}});
+  renderMask();renderFinal();if(!pureBinary()||inkStats.maxTileCoverage>(sketchRequested ? .48 : .80))throw Error("Engraving validation failed");setProgress(100,sketchRequested?"جاهز لـ EZCAD — بشرة بيضاء وتفاصيل فقط":"جاهز لـ EZCAD — Ultra Photo محفوظ في ملف النقط");ui.resultStats.hidden=false;ui.exportBar.hidden=false;ui.invertBtn.disabled=false;ui.sizeStat.textContent=`${target.w} × ${target.h} px`;ui.faceStat.textContent=face.detected?"تم اكتشاف الوجه وحماية ملامحه":"حماية الوجه التقديرية فعّالة";if(ui.algorithmStat)ui.algorithmStat.textContent=halftone;if(ui.qualityStat)ui.qualityStat.textContent=`جودة ${quality.score}/100 · تفاصيل ${Math.round(quality.edgeRetention*100)}% · ${quality.score>=82?"ممتاز":quality.score>=68?"جيد":"راجع المعايرة"}`;if(ui.inkStat)ui.inkStat.textContent=`تغطية الحفر ${(inkStats.coverage*100).toFixed(0)}% · أقصى كتلة ${(inkStats.maxTileCoverage*100).toFixed(0)}%${sketchRequested?` · مصمت ${((quality.solidRatio||0)*100).toFixed(1)}%`:""}`;updateEzcadPanel();
 }
 async function autoPrepare(){
   if(!state.source||state.processing)return;const target=updateTargetValidation();if(!target.valid)return showToast(target.error,true);state.processing=true;ui.prepareBtn.disabled=true;ui.resultStats.hidden=true;ui.exportBar.hidden=true;ui.invertBtn.disabled=true;
@@ -863,7 +879,7 @@ async function prepareEyes(){
     }else binary=diffuseEye(prepared.tone,workW,workH,style==="jarvis"?"jarvis":"stucki",detail,density);
     reinforceEyeEdges(binary,prepared.tone,prepared.gray,focus,workW,workH,detail,style);cleanEyeDither(binary,prepared.tone,workW,workH,noise);
     for(let i=0;i<binary.length;i++)if(focus[i]<.035)binary[i]=255;
-    const cropped=eyeCrop(binary,workW,workH),finalH=Math.max(1,Math.round(finalW*cropped.h/cropped.w)),sizeError=validatePixelSize(finalW,finalH);if(sizeError){const error=Error(sizeError);error.code="INVALID_EXPORT_SIZE";throw error}const finalBinary=resizeBinaryNearest(cropped.binary,cropped.w,cropped.h,finalW,finalH),heightMm=pxToMm(finalH,dpi);Object.assign(state,{eyeBinary:finalBinary,eyeWidth:finalW,eyeHeight:finalH,eyeExportMeta:{w:finalW,h:finalH,wmm:widthMm,hmm:heightMm,dpi,lineSpace:lineSpaceFromDpi(dpi)}});renderEye();ui.eyePngBtn.disabled=false;ui.eyeSvgBtn.disabled=false;updateEyeInputUI();modelStatus("ready",`رسمة العين جاهزة · ${dpi} DPI`);showToast(sourceMode==="full"?"تم اكتشاف الوجه وقص العينين وتجهيزهما تلقائيًا بالمقاس الحقيقي.":"تم تجهيز العين المقصوصة بالمقاس الحقيقي بدون فريم.")
+    const sourceRect={binary,w:workW,h:workH},finalH=Math.max(1,Math.round(finalW*sourceRect.h/sourceRect.w)),sizeError=validatePixelSize(finalW,finalH);if(sizeError){const error=Error(sizeError);error.code="INVALID_EXPORT_SIZE";throw error}const finalBinary=resizeBinaryNearest(sourceRect.binary,sourceRect.w,sourceRect.h,finalW,finalH),heightMm=pxToMm(finalH,dpi);Object.assign(state,{eyeBinary:finalBinary,eyeWidth:finalW,eyeHeight:finalH,eyeExportMeta:{w:finalW,h:finalH,wmm:widthMm,hmm:heightMm,dpi,lineSpace:lineSpaceFromDpi(dpi),keepRectangle:true}});renderEye();ui.eyePngBtn.disabled=false;ui.eyeSvgBtn.disabled=false;updateEyeInputUI();modelStatus("ready",`رسمة العين جاهزة · ${dpi} DPI`);showToast(sourceMode==="full"?"تم اكتشاف الوجه وتجهيز العين في مستطيل ثابت بالمقاس الحقيقي.":"تم تجهيز العين بنفس المستطيل المرفوع بدون قص تلقائي.")
   }catch(e){console.error(e);const message=e?.message==="FULL_FACE_NOT_FOUND"?"لم أجد وجهًا واضحًا في الصورة. اختر صورة أمامية أو استخدم اختيار «عين مقصوصة».":e?.code==="INVALID_EXPORT_SIZE"?e.message:"تفاصيل العين غير كافية. جرّب صورة أوضح أو استخدم AI توضيح أولًا.";showToast(message,true)}finally{state.processing=false;ui.eyeBtn.disabled=false}
 }
 function eyeSvgPath(){return runsToSvgPath(state.eyeBinary,state.eyeWidth,state.eyeHeight,value=>value===0)}

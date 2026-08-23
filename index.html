@@ -7,13 +7,13 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>مطبعجي فايبر ليزر V7.0.0 | AI Wallet Sketch ومنع الفحم</title>
-  <link rel="stylesheet" href="styles.css?v=7.0.0">
+  <title>مطبعجي فايبر ليزر V7.2.0 | Skin White Portrait</title>
+  <link rel="stylesheet" href="styles.css?v=7.2.0">
   <script defer src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js" integrity="sha384-en/ztfPSRkGfME4KIm05joYXynqzUgbsG5nMrj/xEFAHXkeZfO3yMK8QQ+mP7p1/" crossorigin="anonymous"></script>
-  <script defer src="update-config.js?v=7.0.0"></script>
-  <script defer src="app.js?v=7.0.0"></script>
+  <script defer src="update-config.js?v=7.2.0"></script>
+  <script defer src="app.js?v=7.2.0"></script>
 </head>
-<body>
+<body class="simple-mode">
   <header class="topbar">
     <a class="brand" href="#" data-home>
       <span class="brand-gem">م</span>
@@ -22,7 +22,7 @@
     <div class="top-pills">
       <span><i></i> معالجة داخل جهازك</span>
       <span>Fiber 30W</span>
-      <span id="versionLabel">V7.0.0</span><span style="border-color:#57d9ad;color:#57d9ad">AI WALLET SKETCH</span>
+      <span id="versionLabel">V7.2.0</span><span style="border-color:#57d9ad;color:#57d9ad">SKIN WHITE MODE</span>
       <button id="updateBtn" class="update-btn" type="button">↻ فحص التحديث</button>
       <div id="modelBadge" class="model-badge" data-state="idle"><i></i><span>AI جاهز للتحميل</span></div>
     </div>
@@ -33,26 +33,20 @@
       <div class="home-copy">
         <span class="kicker">MATBAAGY · AI PORTRAIT STUDIO</span>
         <h1>اختار نوع الشغل،<br><em>والمكنة تاخد ملفها جاهز.</em></h1>
-        <p>ثلاثة مسارات للفايبر: بورتريه محفظة بخطوط قلم وتهشير خفيف بلا فحم، صورة عين مستقلة، ومعمل معايرة يحوّل استجابة جلدك ومكنتك إلى بريسيت دقيق.</p>
+        <p>واجهة بسيطة: ارفع صورة البورتريه واضغط تجهيز، والبرنامج يطلع ملف حفر محافظ بخطوط وتهشير خفيف بدون كتل سوداء.</p>
       </div>
       <div class="mode-grid">
         <button class="mode-card photo-mode" data-mode="photo">
           <span class="mode-number">01</span>
           <span class="mode-icon person-icon"><i></i></span>
-          <span class="mode-copy"><b>رسم وحفر بورتريه</b><small>AI Line-Art · خطوط الوجه والملابس · تهشير خفيف · منع الفحم</small></span>
+          <span class="mode-copy"><b>حفر بورتريه محفظة</b><small>ارفع الصورة · تجهيز تلقائي · ملف EZCAD جاهز</small></span>
           <span class="mode-go">ابدأ الآن ←</span>
         </button>
         <button class="mode-card eye-mode" data-mode="eye">
           <span class="mode-number">02</span>
           <span class="mode-icon eye-icon"><i></i></span>
-          <span class="mode-copy"><b>حفر عين</b><small>ارفع صورة مقصوصة للعين فقط · تحسين التفاصيل · ملف مستقل</small></span>
+          <span class="mode-copy"><b>حفر عين مستطيلة</b><small>يرفع العين كما هي بدون قص تلقائي</small></span>
           <span class="mode-go">اختر صورة العين ←</span>
-        </button>
-        <button class="mode-card calibration-mode" data-mode="calibration">
-          <span class="mode-number">03</span>
-          <span class="mode-icon calibration-icon"><i></i></span>
-          <span class="mode-copy"><b>معمل المعايرة</b><small>اطبع كارت درجات · صوّر النتيجة · حلّل استجابة الجلد · احفظ بريسيت المكنة</small></span>
-          <span class="mode-go">عاير المكنة والخامة ←</span>
         </button>
       </div>
       <div class="feature-strip">
@@ -63,7 +57,7 @@
     <section id="photoWorkspace" class="workspace" hidden>
       <div class="workspace-head">
         <button class="back-btn" data-home>→ رجوع للاختيارات</button>
-        <div><span>المسار 01</span><h2>حفر صورة شخص</h2><p>عزل كامل، قص ذكي، وتحويل جاهز للفايبر.</p></div>
+        <div><span>المسار 01</span><h2>حفر بورتريه محفظة</h2><p>ارفع الصورة واضغط تجهيز. الإعدادات المتقدمة مخفية لتبسيط التشغيل.</p></div>
       </div>
       <div class="workspace-grid">
         <aside class="control-panel">
@@ -77,7 +71,7 @@
             <button id="photoEnhanceBtn" class="ai-btn" disabled><span>✦</span><b>توضيح الصورة بالـ AI</b><small>مجاني · يعمل داخل المتصفح</small></button>
           </div>
 
-          <div class="panel-section">
+          <div class="panel-section" hidden>
             <div class="section-title"><span>02</span><b>شكل الحفر</b></div>
             <div class="preset-list">
               <label class="preset active"><input type="radio" name="preset" value="portrait" checked><i></i><span><b>Wallet Portrait</b><small>الرسم الخطي المطلوب للمحفظة</small></span></label>
@@ -87,28 +81,28 @@
             </div>
           </div>
 
-          <div class="panel-section quality-controls">
+          <div class="panel-section quality-controls" hidden>
             <div class="section-title"><span>Q</span><b>تحكم الجودة</b></div>
             <label>تنظيف الخلفية<input id="cleanupRange" type="range" min="1" max="10" value="6"></label>
             <label>نعومة الحواف<input id="edgeSmoothRange" type="range" min="0" max="10" value="4"></label>
-            <label>توزيع الإضاءة<input id="lightBalanceRange" type="range" min="0" max="10" value="8"></label>
-            <label>تفاصيل الوجه<input id="faceDetailRange" type="range" min="1" max="10" value="7"></label>
-            <label>التفاصيل الدقيقة والملمس<input id="microDetailRange" type="range" min="0" max="10" value="8"></label>
+            <label>توزيع الإضاءة<input id="lightBalanceRange" type="range" min="0" max="10" value="9"></label>
+            <label>تفاصيل الوجه<input id="faceDetailRange" type="range" min="1" max="10" value="9"></label>
+            <label>التفاصيل الدقيقة والملمس<input id="microDetailRange" type="range" min="0" max="10" value="6"></label>
             <label>قوة خطوط الرسم<input id="lineStrengthRange" type="range" min="0" max="10" value="8"></label>
-            <label>تظليل وتهشير القلم<input id="hatchStrengthRange" type="range" min="0" max="10" value="4"></label>
-            <label>حماية من الفحم والكتل<input id="charcoalGuardRange" type="range" min="0" max="10" value="9"></label>
-            <label>قوة الأسود<input id="blackStrengthRange" type="range" min="1" max="10" value="5"></label>
-            <label>تعويض تمدد النقطة<input id="dotGrowthRange" type="range" min="0" max="10" value="4"></label>
+            <label>تظليل وتهشير القلم<input id="hatchStrengthRange" type="range" min="0" max="10" value="1"></label>
+            <label>حماية من الفحم والكتل<input id="charcoalGuardRange" type="range" min="0" max="10" value="10"></label>
+            <label>قوة الأسود<input id="blackStrengthRange" type="range" min="1" max="10" value="2"></label>
+            <label>تعويض تمدد النقطة<input id="dotGrowthRange" type="range" min="0" max="10" value="3"></label>
             <small>الإضاءة تتوزع تلقائيًا لإخفاء الظلال والحروق. ارفع تنظيف الخلفية لو ظهر كرسي/حائط.</small>
           </div>
 
-          <div class="panel-section compact-settings engine-settings">
+          <div class="panel-section compact-settings engine-settings" hidden>
             <div class="section-title"><span>AI</span><b>شكل النتيجة والمحرك</b></div>
             <label>شكل الحفر<select id="algorithmSelect">
               <optgroup label="رسم البورتريه مثل صور المحافظ">
-                <option value="sketch_ai" selected>AI Wallet Sketch — المطلوب والأفضل</option>
+                <option value="sketch_ai">AI Wallet Sketch — خطوط وتظليل متوسط</option>
                 <option value="sketch_classic">XDoG Wallet Sketch — محلي بدون تنزيل موديل</option>
-                <option value="sketch_light">Clean Contour — خطوط خفيفة فقط</option>
+                <option value="sketch_light" selected>Wallet Clean Portrait — بشرة بيضاء وتفاصيل فقط</option>
                 <option value="sketch_etched">Etched Crosshatch — تهشير أوضح</option>
               </optgroup>
               <optgroup label="صورة فوتوغرافية منقطة">
@@ -155,10 +149,10 @@
           <div class="eye-ezcad-card photo-ezcad-card">
             <strong>إعداد EZCAD للملف الثنائي الجاهز</strong>
             <div><span>Fixed DPI <b>ON · نفس الملف</b></span><span>Drill Mode <b>ON</b></span><span>Gray <b>OFF</b></span><span>Dither <b>OFF</b></span><span>Lighten <b>OFF</b></span><span>Pixel Power <b>OFF</b></span></div>
-            <p>ممنوع معالجة الصورة مرة ثانية داخل EZCAD. الملف فيه الخطوط/النقط النهائية بالفعل. ابدأ بطاقة 8% على قصاصة من نفس المحفظة ثم 12% ثم 16%.</p>
+            <p>البشرة مقصودة تكون بيضاء تقريبًا. لا تشغل Gray أو Dither أو Hatch داخل EZCAD؛ الملف جاهز بتفاصيل الوجه فقط.</p>
           </div>
 
-          <button id="prepareBtn" class="primary-btn" disabled><span>عزل وتجهيز الصورة للفايبر</span><b>←</b></button>
+          <button id="prepareBtn" class="primary-btn" disabled><span>جهّز بورتريه المحفظة</span><b>←</b></button>
           <div id="progressWrap" class="progress-wrap" hidden><div><i id="progressBar"></i></div><span id="progressText">جاري التحضير…</span></div>
 
           <div id="manualPanel" class="manual-panel" hidden>
@@ -174,11 +168,11 @@
             <div class="view-tabs"><button class="view-tab active" data-view="all">الكل</button><button class="view-tab" data-view="original">الأصل</button><button class="view-tab" data-view="mask">العزل</button><button class="view-tab" data-view="final">ملف الحفر</button><button class="view-tab" data-view="leather">محاكاة الجلد</button></div>
             <button id="invertBtn" class="invert-btn" disabled>◐ عكس الأسود والأبيض</button>
           </div>
-          <div id="emptyState" class="empty-state"><span class="empty-orb">م</span><h3>ارفع صورة الشخص</h3><p>سيظهر الأصل، العزل على أبيض، ونتيجة الحفر هنا.</p></div>
+          <div id="emptyState" class="empty-state"><span class="empty-orb">م</span><h3>ارفع صورة الشخص</h3><p>سيظهر الأصل، العزل على أبيض، وملف الحفر هنا.</p></div>
           <div id="previewGrid" class="preview-grid" hidden>
             <article class="preview-card" data-card="original"><header><b>الصورة الأصلية</b><small>ORIGINAL</small></header><div class="canvas-wrap"><canvas id="originalCanvas"></canvas></div></article>
             <article class="preview-card" data-card="mask"><header><b>العزل على أبيض</b><small>AI CUTOUT</small></header><div id="maskCanvasWrap" class="canvas-wrap"><canvas id="maskCanvas"></canvas></div></article>
-            <article class="preview-card final-card" data-card="final"><header><b>نتيجة الحفر</b><small>AI SKETCH · PURE B/W</small></header><div class="canvas-wrap"><canvas id="finalCanvas"></canvas></div></article>
+            <article class="preview-card final-card" data-card="final"><header><b>ملف الحفر</b><small>SKIN WHITE · DETAILS ONLY</small></header><div class="canvas-wrap"><canvas id="finalCanvas"></canvas></div></article>
             <article class="preview-card leather-card" data-card="leather"><header><b>محاكاة على الجلد</b><small>BURN PREVIEW</small></header><div class="canvas-wrap leather-wrap"><canvas id="leatherCanvas"></canvas></div></article>
           </div>
           <div id="resultStats" class="result-stats" hidden><span id="algorithmStat">AI Wallet Sketch</span><span id="qualityStat">تقييم الجودة —</span><span id="sizeStat">—</span><span id="faceStat">حماية الوجه</span><span id="inkStat">تغطية الحفر —</span><span id="exportPxStat">—</span></div>
@@ -232,20 +226,20 @@
     <section id="eyeWorkspace" class="workspace eye-workspace" hidden>
       <div class="workspace-head">
         <button class="back-btn" data-home>→ رجوع للاختيارات</button>
-        <div><span>المسار 02</span><h2>حفر العين فقط</h2><p>ارفع صورة وجه كاملة للقص التلقائي، أو ارفع العين مقصوصة وجاهزة.</p></div>
+        <div><span>المسار 02</span><h2>حفر العين فقط</h2><p>ارفع صورة العين المستطيلة كما هي؛ النتيجة تفضل مستطيلة بدون كروب تلقائي.</p></div>
       </div>
       <div class="eye-grid">
         <aside class="eye-controls">
           <div class="eye-source-choice">
             <strong>هترفع صورة إيه؟</strong>
             <div>
-              <label class="active"><input type="radio" name="eyeSourceMode" value="full" checked><span><b>صورة كاملة</b><small>يكتشف الوجه ويقص العين تلقائيًا</small></span></label>
-              <label><input type="radio" name="eyeSourceMode" value="crop"><span><b>عين مقصوصة</b><small>يجهز الصورة كما رفعتها</small></span></label>
+              <label><input type="radio" name="eyeSourceMode" value="full"><span><b>صورة كاملة</b><small>يكتشف الوجه ويقص العين تلقائيًا</small></span></label>
+              <label class="active"><input type="radio" name="eyeSourceMode" value="crop" checked><span><b>عين مستطيلة</b><small>يجهز الصورة كما رفعتها بدون قص</small></span></label>
             </div>
           </div>
           <label id="eyeDropZone" class="drop-zone eye-drop" for="eyeFileInput">
             <input id="eyeFileInput" type="file" accept="image/png,image/jpeg,image/webp" hidden>
-            <span class="upload-orb">◉</span><b id="eyeDropTitle">اختر صورة الوجه كاملة</b><small id="eyeDropHint">البرنامج سيكتشف العينين ويقصهما تلقائيًا</small>
+            <span class="upload-orb">◉</span><b id="eyeDropTitle">اختر صورة العين المستطيلة</b><small id="eyeDropHint">سيتم تجهيز الصورة بنفس المستطيل بدون قص تلقائي</small>
           </label>
           <div id="eyeFileMeta" class="file-meta" hidden></div>
           <button id="eyeEnhanceBtn" class="ai-btn" disabled><span>✦</span><b>توضيح العين بالـ AI</b><small>تكبير ×2 وإظهار الجفن والقزحية</small></button>
@@ -268,7 +262,7 @@
               <label>دقة النقط<select id="eyeDpiSelect"><option selected>300</option><option>400</option><option>500</option><option>600</option></select></label>
             </div>
           </div>
-          <button id="eyeBtn" class="primary-btn eye-primary" disabled><span>جهّز حفر العين فقط</span><b>←</b></button>
+          <button id="eyeBtn" class="primary-btn eye-primary" disabled><span>جهّز العين بدون قص</span><b>←</b></button>
           <div class="eye-note"><b>وضع المحفظة الاحترافي</b><p>يحافظ على الحاجب والجفن والرموش والقزحية، ويحوّل ظل الجلد لنقط متدرجة بدون مستطيل أسود حول العين.</p></div>
           <div class="laser-safety"><b>تنبيه خامة</b><p>لا تحفر PVC أو جلدًا صناعيًا مجهول التركيب. اختبر قطعة صغيرة واستخدم شفط أبخرة مناسب.</p></div>
           <div class="eye-ezcad-card">

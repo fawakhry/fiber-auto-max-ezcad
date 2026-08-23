@@ -1,4 +1,4 @@
-مطبعجي فايبر ليزر V7.0.0 AI Wallet Sketch — ابدأ من هنا
+مطبعجي فايبر ليزر V7.2.0 AI Wallet Sketch — ابدأ من هنا
 ========================================================
 
 للرفع على GitHub Pages:
@@ -6,7 +6,7 @@
 2) اختر كل الملفات واسحبها إلى Upload files في جذر فرع main.
 3) من Settings > Pages اختر Deploy from a branch ثم main / root.
 4) انتظر النشر وافتح الموقع ثم Ctrl+F5.
-5) علامة النسخة الصحيحة: V7.0.0 وAI WALLET SKETCH.
+5) علامة النسخة الصحيحة: V7.2.0 وSIMPLE WALLET PORTRAIT.
 
 للتشغيل على الكمبيوتر:
 - افتح index.html.
