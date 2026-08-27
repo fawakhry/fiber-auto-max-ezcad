@@ -7,9 +7,9 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>مطبعجي فايبر ليزر V7.4.1 | AI Wallet Sketch ومنع الفحم</title>
+  <title>مطبعجي فايبر ليزر V7.4.2 | AI Wallet Sketch ومنع الفحم</title>
   <style>
-/* MATBAAGY FIBER LASER 7.4.0 — AI wallet sketch and calibrated anti-charcoal studio */
+/* MATBAAGY FIBER LASER 7.0.0 — AI wallet sketch and calibrated anti-charcoal studio */
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap');
 :root{--bg:#07100e;--panel:#0d1916;--panel2:#12211d;--line:#263a34;--gold:#d9b75f;--gold2:#f3d982;--ivory:#f5f1e6;--muted:#96a7a1;--ink:#07100e;--danger:#ef796f;--green:#57d9ad}
 *{box-sizing:border-box}[hidden]{display:none!important}html{scroll-behavior:smooth}body{margin:0;min-width:320px;background:var(--bg);color:var(--ivory);font-family:"Cairo","Segoe UI",sans-serif}button,input,select{font:inherit}button{cursor:pointer}.topbar{height:82px;padding:0 clamp(18px,4vw,68px);display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #23352f;background:#08120ff2;backdrop-filter:blur(18px);position:sticky;top:0;z-index:20}.brand{display:flex;align-items:center;gap:12px;color:inherit;text-decoration:none}.brand-gem{width:43px;height:43px;display:grid;place-items:center;border:1px solid var(--gold);background:linear-gradient(145deg,#e8ca73,#a77d2b);color:#121712;font-size:22px;font-weight:900;box-shadow:0 0 28px #d9b75f22}.brand>span:last-child{display:grid;line-height:1.05}.brand b{font-size:20px;font-weight:900}.brand small{margin-top:5px;color:var(--gold2);font-size:9px;letter-spacing:2px}.top-pills{display:flex;align-items:center;gap:9px}.top-pills>span,.model-badge{height:32px;padding:0 11px;display:flex;align-items:center;gap:7px;border:1px solid var(--line);color:var(--muted);font-size:9px;font-weight:700}.top-pills i,.model-badge i{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green)}.model-badge[data-state=loading] i{background:var(--gold);animation:pulse 1s infinite}.model-badge[data-state=error] i{background:var(--danger)}
@@ -51,7 +51,7 @@ main{min-height:calc(100vh - 82px)}.mode-home{width:min(1240px,calc(100% - 36px)
     <div class="top-pills">
       <span><i></i> معالجة داخل جهازك</span>
       <span>Fiber 30W</span>
-      <span id="versionLabel">V7.4.1</span><span style="border-color:#57d9ad;color:#57d9ad">AI WALLET SKETCH</span>
+      <span id="versionLabel">V7.4.2</span><span style="border-color:#57d9ad;color:#57d9ad">FULL FRAME EYE</span>
       <button id="updateBtn" class="update-btn" type="button">↻ فحص التحديث</button>
       <div id="modelBadge" class="model-badge" data-state="idle"><i></i><span>AI جاهز للتحميل</span></div>
     </div>
@@ -261,20 +261,20 @@ main{min-height:calc(100vh - 82px)}.mode-home{width:min(1240px,calc(100% - 36px)
     <section id="eyeWorkspace" class="workspace eye-workspace" hidden>
       <div class="workspace-head">
         <button class="back-btn" data-home>→ رجوع للاختيارات</button>
-        <div><span>المسار 02</span><h2>حفر العين فقط</h2><p>ارفع صورة وجه كاملة للقص التلقائي، أو ارفع العين مقصوصة وجاهزة.</p></div>
+        <div><span>المسار 02</span><h2>حفر العين فقط</h2><p>ارفع صورة وجه كاملة أو عين مقصوصة، والناتج النهائي يظل مستطيلاً مع الحفاظ على تفاصيل العين والوجه.</p></div>
       </div>
       <div class="eye-grid">
         <aside class="eye-controls">
           <div class="eye-source-choice">
             <strong>هترفع صورة إيه؟</strong>
             <div>
-              <label class="active"><input type="radio" name="eyeSourceMode" value="full" checked><span><b>صورة كاملة</b><small>يكتشف الوجه ويقص العين تلقائيًا</small></span></label>
-              <label><input type="radio" name="eyeSourceMode" value="crop"><span><b>عين مقصوصة</b><small>يجهز الصورة كما رفعتها</small></span></label>
+              <label class="active"><input type="radio" name="eyeSourceMode" value="full" checked><span><b>صورة كاملة</b><small>يكتشف العينين من الوجه مع هامش أوسع</small></span></label>
+              <label><input type="radio" name="eyeSourceMode" value="crop"><span><b>عين مقصوصة</b><small>يحافظ على الصورة المستطيلة كما رفعتها</small></span></label>
             </div>
           </div>
           <label id="eyeDropZone" class="drop-zone eye-drop" for="eyeFileInput">
             <input id="eyeFileInput" type="file" accept="image/png,image/jpeg,image/webp" hidden>
-            <span class="upload-orb">◉</span><b id="eyeDropTitle">اختر صورة الوجه كاملة</b><small id="eyeDropHint">البرنامج سيكتشف العينين ويقصهما تلقائيًا</small>
+            <span class="upload-orb">◉</span><b id="eyeDropTitle">اختر صورة الوجه كاملة</b><small id="eyeDropHint">البرنامج سيكتشف العينين مع الحفاظ على مساحة أكبر من التفاصيل</small>
           </label>
           <div id="eyeFileMeta" class="file-meta" hidden></div>
           <button id="eyeEnhanceBtn" class="ai-btn" disabled><span>✦</span><b>توضيح العين بالـ AI</b><small>تكبير ×2 وإظهار الجفن والقزحية</small></button>
@@ -303,11 +303,11 @@ main{min-height:calc(100vh - 82px)}.mode-home{width:min(1240px,calc(100% - 36px)
           <div class="eye-ezcad-card">
             <strong>إعداد EZCAD للملف الجاهز</strong>
             <div><span>Fixed DPI <b id="eyeEzcadDpi">300 × 300</b></span><span>Final Size <b id="eyeSizePreview">65.0 mm · 768 px</b></span><span>Dither <b>OFF</b></span><span>Gray <b>OFF</b></span><span>Lighten <b>OFF</b></span><span>Pixel Power Adjust <b>OFF</b></span><span>Drill Mode <b>ON</b></span></div>
-            <p>البرنامج عمل التنقيط والإضاءة بالفعل. تشغيلهم مرة ثانية في EZCAD يضيّع العين ويغمّق المستطيل.</p>
+            <p>البرنامج عمل التنقيط والإضاءة بالفعل. الناتج النهائي مستطيل دائمًا، وإعادة المعالجة داخل EZCAD قد تضيع التفاصيل.</p>
           </div>
         </aside>
         <section class="eye-preview-area">
-          <div id="eyeEmpty" class="empty-state"><span class="empty-eye">◉</span><h3>اختر صورة العين</h3><p>ستُقص التفاصيل تلقائيًا بأكبر قدر ممكن.</p></div>
+          <div id="eyeEmpty" class="empty-state"><span class="empty-eye">◉</span><h3>اختر صورة العين</h3><p>ستظهر الرسمة مستطيلة دائمًا مع الحفاظ على كامل التفاصيل المهمة.</p></div>
           <div id="eyePreview" class="eye-preview-grid" hidden>
             <article class="preview-card"><header><b>صورة العين الأصلية</b><small>EYE SOURCE</small></header><div class="canvas-wrap"><canvas id="eyeOriginalCanvas"></canvas></div></article>
             <article id="eyeCard" class="preview-card final-card"><header><b>رسمة العين للحفر</b><small>EYE ENGRAVE</small></header><div class="canvas-wrap"><canvas id="eyeCanvas"></canvas></div></article>
@@ -334,8 +334,8 @@ window.MATBAAGY_CONFIG = {
 
   </script>
   <script>
-// MATBAAGY FIBER LASER 7.4.0 — AI line-art + calibrated anti-charcoal engraving studio
-const APP_VERSION = "7.4.0";
+// MATBAAGY FIBER LASER 7.0.0 — AI line-art + calibrated anti-charcoal engraving studio
+const APP_VERSION = "7.0.0";
 const MP_VERSION = "0.10.35";
 const MP_MODULE = `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MP_VERSION}/vision_bundle.mjs`;
 const MP_WASM = `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MP_VERSION}/wasm`;
@@ -456,7 +456,7 @@ const currentEyeSourceMode=()=>document.querySelector('input[name="eyeSourceMode
 function updateEyeInputUI(){
   const full=currentEyeSourceMode()==="full";
   if(ui.eyeDropTitle)ui.eyeDropTitle.textContent=full?"اختر صورة الوجه كاملة":"اختر صورة العين المقصوصة";
-  if(ui.eyeDropHint)ui.eyeDropHint.textContent=full?"البرنامج سيكتشف العينين ويقصهما تلقائيًا":"ارفع العين أو العينين بعد قصهما يدويًا";
+  if(ui.eyeDropHint)ui.eyeDropHint.textContent=full?"البرنامج سيكتشف العينين مع الحفاظ على مساحة أكبر من التفاصيل":"ارفع العين أو العينين بعد قصهما يدويًا";
   if(ui.eyeEzcadDpi){const dpi=+ui.eyeDpiSelect?.value||300;ui.eyeEzcadDpi.textContent=`${dpi} × ${dpi}`}
   if(ui.eyeSizePreview){const dpi=clamp(+ui.eyeDpiSelect?.value||300,300,600),wmm=clamp(+ui.eyeWidthMm?.value||65,15,150),w=Math.round(wmm/25.4*dpi),meta=state.eyeExportMeta;ui.eyeSizePreview.textContent=meta?`${meta.wmm.toFixed(1)}×${meta.hmm.toFixed(1)} mm · ${meta.w}×${meta.h} px`:`${wmm.toFixed(1)} mm · ${w} px`}
   document.querySelectorAll(".eye-source-choice label").forEach(label=>label.classList.toggle("active",!!label.querySelector("input:checked")));

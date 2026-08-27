@@ -1,5 +1,5 @@
 // MATBAAGY FIBER LASER 7.0.0 — AI line-art + calibrated anti-charcoal engraving studio
-const APP_VERSION = "7.4.1";
+const APP_VERSION = "7.4.2";
 const MP_VERSION = "0.10.35";
 const MP_MODULE = `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MP_VERSION}/vision_bundle.mjs`;
 const MP_WASM = `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MP_VERSION}/wasm`;
@@ -99,7 +99,7 @@ const MAX_EXPORT_SIDE = 5000;
 const MAX_EXPORT_PIXELS = (navigator.deviceMemory && navigator.deviceMemory <= 4) ? 8000000 : 12000000;
 const MAX_SVG_REGIONS = 250000;
 const $ = id => document.getElementById(id);
-const ui = Object.fromEntries(["modeHome","photoWorkspace","eyeWorkspace","calibrationWorkspace","fileInput","dropZone","fileMeta","photoEnhanceBtn","prepareBtn","eyeBtn","eyeFileInput","eyeDropZone","eyeDropTitle","eyeDropHint","eyeFileMeta","eyeEnhanceBtn","eyeStyleSelect","eyeDensitySelect","eyeDetailRange","eyeFadeRange","eyeNoiseRange","eyeWidthMm","eyeDpiSelect","eyeEzcadDpi","eyeSizePreview","cleanupRange","edgeSmoothRange","lightBalanceRange","faceDetailRange","microDetailRange","lineStrengthRange","hatchStrengthRange","charcoalGuardRange","blackStrengthRange","dotGrowthRange","algorithmSelect","profileSelect","profileHint","eyeEmpty","eyePreview","eyeOriginalCanvas","modelBadge","progressWrap","progressBar","progressText","manualPanel","brushSize","resetMaskBtn","applyMaskBtn","emptyState","previewGrid","originalCanvas","maskCanvas","finalCanvas","leatherCanvas","eyeCanvas","eyeCard","maskCanvasWrap","resultStats","exportBar","invertBtn","cutoutBtn","pngBtn","bmpBtn","txtBtn","svgBtn","pdfBtn","testCardBtn","eyePngBtn","eyeSvgBtn","sizeStat","faceStat","inkStat","algorithmStat","qualityStat","exportPxStat","toast","materialSelect","targetWidth","targetHeight","dpiSelect","lineSpacePreview","targetValidation","lockRatio","materialName","powerVal","speedVal","frequencyVal","lineSpaceVal","dpiVal","loopVal","settingsNote","versionLabel","updateBtn","updatePanel","closeUpdateBtn","updateTitle","updateStatus","updateDownloadLink","profileName","laserSource","lensSize","calibrationDpi","calibrationPower","measuredPitch","leatherColor","intervalExportBtn","calibrationExportBtn","calibrationDropZone","calibrationPhotoInput","calibrationCanvas","calibrationResults","calibrationSeparation","calibrationMaxInk","calibrationScore","calibrationBars","calibrationAdvice","saveProfileBtn","simplePhotoStyle","simpleEyeStyle"].map(id => [id, $(id)]));
+const ui = Object.fromEntries(["modeHome","photoWorkspace","eyeWorkspace","calibrationWorkspace","fileInput","dropZone","fileMeta","photoEnhanceBtn","prepareBtn","eyeBtn","eyeFileInput","eyeDropZone","eyeDropTitle","eyeDropHint","eyeFileMeta","eyeEnhanceBtn","eyeStyleSelect","eyeDensitySelect","eyeDetailRange","eyeFadeRange","eyeNoiseRange","eyeWidthMm","eyeDpiSelect","eyeEzcadDpi","eyeSizePreview","cleanupRange","edgeSmoothRange","lightBalanceRange","faceDetailRange","microDetailRange","lineStrengthRange","hatchStrengthRange","charcoalGuardRange","blackStrengthRange","dotGrowthRange","algorithmSelect","profileSelect","profileHint","eyeEmpty","eyePreview","eyeOriginalCanvas","modelBadge","progressWrap","progressBar","progressText","manualPanel","brushSize","resetMaskBtn","applyMaskBtn","emptyState","previewGrid","originalCanvas","maskCanvas","finalCanvas","leatherCanvas","eyeCanvas","eyeCard","maskCanvasWrap","resultStats","exportBar","invertBtn","cutoutBtn","pngBtn","bmpBtn","txtBtn","svgBtn","pdfBtn","testCardBtn","eyePngBtn","eyeSvgBtn","sizeStat","faceStat","inkStat","algorithmStat","qualityStat","exportPxStat","toast","materialSelect","targetWidth","targetHeight","dpiSelect","lineSpacePreview","targetValidation","lockRatio","materialName","powerVal","speedVal","frequencyVal","lineSpaceVal","dpiVal","loopVal","settingsNote","versionLabel","updateBtn","updatePanel","closeUpdateBtn","updateTitle","updateStatus","updateDownloadLink","profileName","laserSource","lensSize","calibrationDpi","calibrationPower","measuredPitch","leatherColor","intervalExportBtn","calibrationExportBtn","calibrationDropZone","calibrationPhotoInput","calibrationCanvas","calibrationResults","calibrationSeparation","calibrationMaxInk","calibrationScore","calibrationBars","calibrationAdvice","saveProfileBtn"].map(id => [id, $(id)]));
 const state = { source:null, eyeSource:null, name:"portrait", eyeName:"eye", mask:null, alpha:null, cutout:null, finalMask:null, binary:null, eyeBinary:null, eyeWidth:0, eyeHeight:0, width:0, height:0, segmenter:null, faceLandmarker:null, mattingModel:null, upscaler:null, lineArtSession:null, lineArtPromise:null, ortPromise:null, hfModule:null, hfPromise:null, mattingPromise:null, upscalePromise:null, vision:null, visionModule:null, modelPromise:null, facePromise:null, processing:false, inverted:false, manual:false, brushMode:"add", drawing:false, lastPoint:null, face:null, inkStats:null, qualityScore:null, selectedAlgorithm:null, selectedStyle:null, calibrationAnalysis:null, activeCalibration:null, exportMeta:null, eyeExportMeta:null, sourceProcessSize:null, toastTimer:0 };
 const clamp = (v,a,b) => Math.max(a,Math.min(b,v));
 const tick = () => new Promise(r => requestAnimationFrame(() => setTimeout(r,0)));
@@ -671,61 +671,9 @@ async function processMask(mask){
   const requested=ui.algorithmSelect?.value||"sketch_ai",sketchRequested=requested.startsWith("sketch");let selected,aiLine=null,halftone;
   if(sketchRequested){if(requested==="sketch_ai"){setProgress(87,"AI يحوّل البورتريه إلى خطوط ذات معنى · ولو تعذر يعمل XDoG تلقائيًا…");await tick();try{const ai=await lineArtAIGray(crop.source,crop.mask,crop.w,crop.h);aiLine=resizeGrayBilinear(ai.gray,ai.w,ai.h,target.w,target.h)}catch(e){console.warn("AI line-art fallback",e)}}setProgress(91,"بناء خطوط الوجه وتهشير القلم مع منع الفحم…");await tick();selected=selectBestSketch(sizedGray,tone,finalMask,target.w,target.h,targetFace,q,requested,aiLine);const sketchNames={contour:"Clean Contour",portrait:"Wallet Pencil",etched:"Etched Crosshatch"};halftone=`${sketchNames[selected.method]||selected.method}${selected.aiUsed?" · AI Line-Art":" · XDoG"}`}
   else{const photoMethod=requested==="photo_auto"?"auto":requested;setProgress(88,photoMethod==="auto"?"Ultra Photo يقارن 7 محركات بعد حماية التفاصيل…":"بناء النقط بالمحرك المختار…");await tick();selected=selectBestEngraving(tone,sourceGray,finalMask,target.w,target.h,targetFace,p,q,photoMethod);const names={finegrain:"Fine Grain",bluenoise:"Blue Noise",microscreen:"Micro Screen 45°"};halftone=HALFTONE_KERNELS[selected.method]?.label||names[selected.method]||selected.method}
-  const binary=walletTargetClean(selected.binary,tone,finalMask,target.w,target.h,targetFace,q),quality=scoreLaserSketch(binary,binary,tone,finalMask,target.w,target.h,targetFace,q),inkStats=photoInkStats(binary,finalMask,target.w,target.h);setProgress(96,sketchRequested?"فحص سماكة الخطوط وإزالة أي نواة سوداء…":"فحص الطيات والحواف والتكتلات في النتيجة النهائية…");await tick();Object.assign(state,{binary,finalMask,width:target.w,height:target.h,face,inkStats,qualityScore:quality.score,selectedAlgorithm:selected.method,selectedStyle:sketchRequested?"portrait-sketch":"photo-halftone",inverted:false,sourceProcessSize:{w:crop.w,h:crop.h},exportMeta:{...target,material:ui.materialSelect?.value||"leather_wallet",halftone,style:sketchRequested?"Portrait line-art + sparse hatching":"Calibrated photo halftone",algorithm:selected.method,aiLineArt:!!selected.aiUsed,qualityScore:quality.score,edgeRetention:quality.edgeRetention,solidRatio:quality.solidRatio??0,inkCoverage:inkStats.coverage,profile:state.activeCalibration?.name||"Factory Leather",dotGrowth:q.dotGrowth,microDetail:q.microDetail,lineStrength:q.lineStrength,hatchStrength:q.hatchStrength,charcoalGuard:q.charcoalGuard}});
+  const binary=selected.binary,quality=selected.quality,inkStats=photoInkStats(binary,finalMask,target.w,target.h);setProgress(96,sketchRequested?"فحص سماكة الخطوط وإزالة أي نواة سوداء…":"فحص الطيات والحواف والتكتلات في النتيجة النهائية…");await tick();Object.assign(state,{binary,finalMask,width:target.w,height:target.h,face,inkStats,qualityScore:quality.score,selectedAlgorithm:selected.method,selectedStyle:sketchRequested?"portrait-sketch":"photo-halftone",inverted:false,sourceProcessSize:{w:crop.w,h:crop.h},exportMeta:{...target,material:ui.materialSelect?.value||"leather_wallet",halftone,style:sketchRequested?"Portrait line-art + sparse hatching":"Calibrated photo halftone",algorithm:selected.method,aiLineArt:!!selected.aiUsed,qualityScore:quality.score,edgeRetention:quality.edgeRetention,solidRatio:quality.solidRatio??0,inkCoverage:inkStats.coverage,profile:state.activeCalibration?.name||"Factory Leather",dotGrowth:q.dotGrowth,microDetail:q.microDetail,lineStrength:q.lineStrength,hatchStrength:q.hatchStrength,charcoalGuard:q.charcoalGuard}});
   renderMask();renderFinal();if(!pureBinary()||inkStats.maxTileCoverage>(sketchRequested ? .48 : .80))throw Error("Engraving validation failed");setProgress(100,sketchRequested?"جاهز لـ EZCAD — رسم المحفظة بلا كتل فحم":"جاهز لـ EZCAD — Ultra Photo محفوظ في ملف النقط");ui.resultStats.hidden=false;ui.exportBar.hidden=false;ui.invertBtn.disabled=false;ui.sizeStat.textContent=`${target.w} × ${target.h} px`;ui.faceStat.textContent=face.detected?"تم اكتشاف الوجه وحماية ملامحه":"حماية الوجه التقديرية فعّالة";if(ui.algorithmStat)ui.algorithmStat.textContent=halftone;if(ui.qualityStat)ui.qualityStat.textContent=`جودة ${quality.score}/100 · تفاصيل ${Math.round(quality.edgeRetention*100)}% · ${quality.score>=82?"ممتاز":quality.score>=68?"جيد":"راجع المعايرة"}`;if(ui.inkStat)ui.inkStat.textContent=`تغطية الحفر ${(inkStats.coverage*100).toFixed(0)}% · أقصى كتلة ${(inkStats.maxTileCoverage*100).toFixed(0)}%${sketchRequested?` · مصمت ${((quality.solidRatio||0)*100).toFixed(1)}%`:""}`;updateEzcadPanel();
 }
-
-function countBlackNeighbors(binary,w,h,x,y){let n=0;for(let yy=-1;yy<=1;yy++)for(let xx=-1;xx<=1;xx++){if(!xx&&!yy)continue;const nx=x+xx,ny=y+yy;if(nx>=0&&nx<w&&ny>=0&&ny<h&&binary[ny*w+nx]===0)n++;}return n;}
-function walletTargetClean(binary,tone,mask,w,h,face,q=qualitySettings()){
-  let out=binary.slice();
-  for(let pass=0;pass<2;pass++){
-    const src=out.slice();
-    for(let y=1;y<h-1;y++)for(let x=1;x<w-1;x++){
-      const i=y*w+x;if(!mask[i]||src[i]!==0)continue;
-      const n=countBlackNeighbors(src,w,h,x,y),faceArea=inFace(x,y,face),light=tone[i]>188,veryLight=tone[i]>218;
-      if(n===0){out[i]=255;continue;}
-      if(veryLight&&n<=3){out[i]=255;continue;}
-      if(light&&n<=1){out[i]=255;continue;}
-      if(faceArea&&tone[i]>165&&n<=2){out[i]=255;continue;}
-    }
-  }
-  const edgeLimit=face?18:22;
-  for(let y=1;y<h-1;y++)for(let x=1;x<w-1;x++){
-    const i=y*w+x;if(!mask[i])continue;
-    const gx=-tone[i-w-1]-2*tone[i-1]-tone[i+w-1]+tone[i-w+1]+2*tone[i+1]+tone[i+w+1];
-    const gy=-tone[i-w-1]-2*tone[i-w]-tone[i-w+1]+tone[i+w-1]+2*tone[i+w]+tone[i+w+1];
-    const edge=(Math.abs(gx)+Math.abs(gy))/4;
-    if(edge>(inFace(x,y,face)?edgeLimit:24)&&tone[i]<230)out[i]=0;
-  }
-  out=limitInkTiles(out,tone,mask,w,h,.20);
-  const src=out.slice();
-  for(let y=1;y<h-1;y++)for(let x=1;x<w-1;x++){
-    const i=y*w+x;if(!mask[i]||src[i]!==0)continue;
-    const n=countBlackNeighbors(src,w,h,x,y);
-    if(n<=1&&tone[i]>145)out[i]=255;
-  }
-  for(let i=0;i<out.length;i++)if(!mask[i])out[i]=255;
-  return out;
-}
-function walletEyeReferenceFilter(binary,tone,gray,focus,w,h,detail=8){
-  const out=binary.slice();
-  for(let y=1;y<h-1;y++)for(let x=1;x<w-1;x++){
-    const i=y*w+x;if(out[i]!==0)continue;
-    const n=countBlackNeighbors(binary,w,h,x,y);
-    if(focus[i]<.18){out[i]=255;continue;}
-    if(tone[i]>205&&n<=4){out[i]=255;continue;}
-    if(tone[i]>175&&n<=1){out[i]=255;continue;}
-  }
-  for(let y=1;y<h-1;y++)for(let x=1;x<w-1;x++){
-    const i=y*w+x;if(focus[i]<.23)continue;
-    const gx=-gray[i-w-1]-2*gray[i-1]-gray[i+w-1]+gray[i-w+1]+2*gray[i+1]+gray[i+w+1];
-    const gy=-gray[i-w-1]-2*gray[i-w]-gray[i-w+1]+gray[i+w-1]+2*gray[i+w]+gray[i+w+1];
-    const edge=(Math.abs(gx)+Math.abs(gy))/4;
-    if(edge>(30-detail*1.2)&&tone[i]<215)out[i]=0;
-  }
-  return out;
-}
-
 async function autoPrepare(){
   if(!state.source||state.processing)return;const target=updateTargetValidation();if(!target.valid)return showToast(target.error,true);state.processing=true;ui.prepareBtn.disabled=true;ui.resultStats.hidden=true;ui.exportBar.hidden=true;ui.invertBtn.disabled=true;
   try{setProgress(8,"تحميل محرك Person Segmentation…");await tick();setProgress(18,"عزل الشخص الأساسي من الخلفية…");const segmented=await personMask();state.mask=segmented.mask;state.alpha=segmented.alpha;state.cutout=buildWhiteCutout(state.mask,state.alpha);setProgress(38,"تنظيف الحواف وقص الصورة على خلفية بيضاء…");await tick();state.manual=false;ui.manualPanel.hidden=true;ui.maskCanvasWrap.classList.remove("editing");renderMask();await processMask(state.mask);showToast("تم عزل الشخص على خلفية بيضاء مقصوصة بدون فريم زائد.")}
@@ -801,7 +749,7 @@ async function cropEyesFromFullImage(source){
   if(!landmarks?.length)throw Error("FULL_FACE_NOT_FOUND");
   const sw=source.width,sh=source.height,points=landmarks.map(p=>({x:p.x*sw,y:p.y*sh})),ids=[...LEFT_EYE,...RIGHT_EYE,...LEFT_BROW,...RIGHT_BROW,...LEFT_IRIS,...RIGHT_IRIS],b=pointBounds(points,ids);
   if(!b||b.w<20||b.h<8)throw Error("EYE_CROP_NOT_FOUND");
-  const side=Math.max(10,b.w*.10),top=Math.max(10,b.h*.42),bottom=Math.max(10,b.h*.58),sx=clamp(Math.floor(b.x-side),0,sw-1),sy=clamp(Math.floor(b.y-top),0,sh-1),ex=clamp(Math.ceil(b.x+b.w+side),sx+1,sw),ey=clamp(Math.ceil(b.y+b.h+bottom),sy+1,sh),w=ex-sx,h=ey-sy,c=makeCanvas(w,h),ctx=c.getContext("2d",{alpha:false,willReadFrequently:true});
+  const side=Math.max(12,b.w*.18),top=Math.max(12,b.h*.72),bottom=Math.max(12,b.h*.72),sx=clamp(Math.floor(b.x-side),0,sw-1),sy=clamp(Math.floor(b.y-top),0,sh-1),ex=clamp(Math.ceil(b.x+b.w+side),sx+1,sw),ey=clamp(Math.ceil(b.y+b.h+bottom),sy+1,sh),w=ex-sx,h=ey-sy,c=makeCanvas(w,h),ctx=c.getContext("2d",{alpha:false,willReadFrequently:true});
   ctx.fillStyle="white";ctx.fillRect(0,0,w,h);ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality="high";ctx.drawImage(source,sx,sy,w,h,0,0,w,h);
   return c;
 }
@@ -821,6 +769,7 @@ function eyeCrop(binary,w,h){
   const ink=new Uint8Array(binary.length);for(let i=0;i<ink.length;i++)ink[i]=binary[i]===0?1:0;const b=bounds(ink,w,h);if(!b||b.area<w*h*.0008)throw Error("No eye detail");const m=Math.max(2,Math.round(Math.max(b.w,b.h)*.04)),sx=Math.max(0,b.x-m),sy=Math.max(0,b.y-m),ex=Math.min(w,b.x+b.w+m),ey=Math.min(h,b.y+b.h+m),ow=ex-sx,oh=ey-sy,out=new Uint8Array(ow*oh);out.fill(255);for(let y=0;y<oh;y++)for(let x=0;x<ow;x++)out[y*ow+x]=binary[(y+sy)*w+x+sx];return{binary:out,w:ow,h:oh};
 }
 function smooth01(a,b,v){const t=clamp((v-a)/(b-a),0,1);return t*t*(3-2*t)}
+function fullFrameFocusMask(w,h,pad=.008){const out=new Float32Array(w*h);for(let y=0;y<h;y++)for(let x=0;x<w;x++){const edge=Math.min(x,y,w-1-x,h-1-y)/Math.max(1,Math.min(w,h));out[y*w+x]=smooth01(0,pad,edge)}return out}
 function eyeFocusMask(w,h,fade,style){
   const out=new Float32Array(w*h),twoEyes=w/h>1.72,soft=.06+(fade/10)*.15;
   for(let y=0;y<h;y++)for(let x=0;x<w;x++){
@@ -908,15 +857,14 @@ async function prepareEyes(){
     modelStatus("loading","توزيع إضاءة العين وتجهيز نقط الحفر…");
     const detail=+ui.eyeDetailRange.value||6,noise=+ui.eyeNoiseRange.value||4,fade=+ui.eyeFadeRange.value||7,style=ui.eyeStyleSelect.value||"wallet",density=ui.eyeDensitySelect.value||"light",dpi=clamp(+ui.eyeDpiSelect.value||300,300,600),widthMm=clamp(+ui.eyeWidthMm.value||65,15,150),finalW=Math.max(1,Math.round(widthMm/25.4*dpi)),requestedWorkW=Math.max(320,finalW),requestedWorkH=Math.max(100,Math.round(requestedWorkW*src.height/src.width)),workScale=Math.min(1,3600/requestedWorkW,2200/requestedWorkH),workW=Math.max(1,Math.round(requestedWorkW*workScale)),workH=Math.max(1,Math.round(requestedWorkH*workScale)),c=makeCanvas(workW,workH),ctx=c.getContext("2d",{alpha:false,willReadFrequently:true});
     ctx.fillStyle="white";ctx.fillRect(0,0,workW,workH);ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality="high";ctx.drawImage(src,0,0,workW,workH);
-    const data=ctx.getImageData(0,0,workW,workH),focus=suppressEyeSideArtifacts(data,eyeFocusMask(workW,workH,fade,style),workW,workH),prepared=prepareEyeTone(data,workW,workH,detail,noise,focus);let binary;
+    const data=ctx.getImageData(0,0,workW,workH),focus=sourceMode==="crop"?fullFrameFocusMask(workW,workH,.008):suppressEyeSideArtifacts(data,eyeFocusMask(workW,workH,fade,style),workW,workH),prepared=prepareEyeTone(data,workW,workH,detail,noise,focus);let binary;
     if(style==="line"){
       const all=new Uint8Array(workW*workH);all.fill(1);const local=localMap(prepared.tone,all,workW,workH,clamp(Math.round(workH*.045),7,48),false,PRESETS.soft),global=otsu(prepared.tone,all);binary=new Uint8Array(workW*workH);binary.fill(255);
       for(let i=0;i<binary.length;i++)if(focus[i]>.12&&(prepared.tone[i]<local[i]-(13-detail*.8)||prepared.tone[i]<global-30))binary[i]=0;
     }else binary=diffuseEye(prepared.tone,workW,workH,style==="jarvis"?"jarvis":"stucki",detail,density);
     reinforceEyeEdges(binary,prepared.tone,prepared.gray,focus,workW,workH,detail,style);cleanEyeDither(binary,prepared.tone,workW,workH,noise);
-    binary=walletEyeReferenceFilter(binary,prepared.tone,prepared.gray,focus,workW,workH,detail);
     for(let i=0;i<binary.length;i++)if(focus[i]<.035)binary[i]=255;
-    const finalH=Math.max(1,Math.round(finalW*workH/workW)),sizeError=validatePixelSize(finalW,finalH);if(sizeError){const error=Error(sizeError);error.code="INVALID_EXPORT_SIZE";throw error}const finalBinary=resizeBinaryNearest(binary,workW,workH,finalW,finalH),heightMm=pxToMm(finalH,dpi);Object.assign(state,{eyeBinary:finalBinary,eyeWidth:finalW,eyeHeight:finalH,eyeExportMeta:{w:finalW,h:finalH,wmm:widthMm,hmm:heightMm,dpi,lineSpace:lineSpaceFromDpi(dpi)}});renderEye();ui.eyePngBtn.disabled=false;ui.eyeSvgBtn.disabled=false;updateEyeInputUI();modelStatus("ready",`رسمة العين المستطيلة المقفولة جاهزة · ${dpi} DPI`);showToast(sourceMode==="full"?"تم اكتشاف العينين وتجهيزهما داخل إطار مستطيل ثابت بدون قص نهائي.":"تم تجهيز العين المقصوصة داخل نفس الإطار المستطيل بدون أي Crop نهائي.")
+    const cropped=eyeCrop(binary,workW,workH),finalH=Math.max(1,Math.round(finalW*cropped.h/cropped.w)),sizeError=validatePixelSize(finalW,finalH);if(sizeError){const error=Error(sizeError);error.code="INVALID_EXPORT_SIZE";throw error}const finalBinary=resizeBinaryNearest(cropped.binary,cropped.w,cropped.h,finalW,finalH),heightMm=pxToMm(finalH,dpi);Object.assign(state,{eyeBinary:finalBinary,eyeWidth:finalW,eyeHeight:finalH,eyeExportMeta:{w:finalW,h:finalH,wmm:widthMm,hmm:heightMm,dpi,lineSpace:lineSpaceFromDpi(dpi)}});renderEye();ui.eyePngBtn.disabled=false;ui.eyeSvgBtn.disabled=false;updateEyeInputUI();modelStatus("ready",`رسمة العين المستطيلة الكاملة جاهزة · ${dpi} DPI`);showToast(sourceMode==="full"?"تم اكتشاف العينين وتجهيزهما داخل إطار مستطيل كامل مع الحفاظ على تفاصيل الوجه والعين.":"تم تجهيز العين المقصوصة داخل نفس الإطار المستطيل مع الحفاظ على كل تفاصيلها وبدون Crop نهائي.")
   }catch(e){console.error(e);const message=e?.message==="FULL_FACE_NOT_FOUND"?"لم أجد وجهًا واضحًا في الصورة. اختر صورة أمامية أو استخدم اختيار «عين مقصوصة».":e?.code==="INVALID_EXPORT_SIZE"?e.message:"تفاصيل العين غير كافية. جرّب صورة أوضح أو استخدم AI توضيح أولًا.";showToast(message,true)}finally{state.processing=false;ui.eyeBtn.disabled=false}
 }
 function eyeSvgPath(){return runsToSvgPath(state.eyeBinary,state.eyeWidth,state.eyeHeight,value=>value===0)}
@@ -930,31 +878,6 @@ function invalidateEyeResult(message="تم تغيير إعدادات العين.
   if(!state.eyeBinary){state.eyeExportMeta=null;updateEyeInputUI();return}state.eyeBinary=null;state.eyeExportMeta=null;ui.eyePngBtn.disabled=true;ui.eyeSvgBtn.disabled=true;updateEyeInputUI();showToast(message);
 }
 
-
-function setRangeValue(el,val){if(el)el.value=String(val)}
-function setSelectValueSafe(el,val){if(el)el.value=String(val)}
-function setPresetRadio(value){document.querySelectorAll('input[name="preset"]').forEach(input=>{input.checked=input.value===value; input.closest('.preset')?.classList.toggle('active', input.checked);});}
-function applySimplePhotoStyle(mode="balanced",silent=false){
-  setPresetRadio("portrait");
-  setSelectValueSafe(ui.algorithmSelect,"sketch_light");
-  setSelectValueSafe(ui.materialSelect,"leather_wallet");
-  if(mode==="soft"){setRangeValue(ui.cleanupRange,7);setRangeValue(ui.edgeSmoothRange,5);setRangeValue(ui.lightBalanceRange,9);setRangeValue(ui.faceDetailRange,8);setRangeValue(ui.microDetailRange,6);setRangeValue(ui.lineStrengthRange,7);setRangeValue(ui.hatchStrengthRange,1);setRangeValue(ui.charcoalGuardRange,10);setRangeValue(ui.blackStrengthRange,2);setRangeValue(ui.dotGrowthRange,1);}
-  else if(mode==="detailed"){setRangeValue(ui.cleanupRange,6);setRangeValue(ui.edgeSmoothRange,4);setRangeValue(ui.lightBalanceRange,8);setRangeValue(ui.faceDetailRange,9);setRangeValue(ui.microDetailRange,8);setRangeValue(ui.lineStrengthRange,8);setRangeValue(ui.hatchStrengthRange,1);setRangeValue(ui.charcoalGuardRange,10);setRangeValue(ui.blackStrengthRange,2);setRangeValue(ui.dotGrowthRange,1);}
-  else {setRangeValue(ui.cleanupRange,6);setRangeValue(ui.edgeSmoothRange,4);setRangeValue(ui.lightBalanceRange,9);setRangeValue(ui.faceDetailRange,8);setRangeValue(ui.microDetailRange,7);setRangeValue(ui.lineStrengthRange,7);setRangeValue(ui.hatchStrengthRange,0);setRangeValue(ui.charcoalGuardRange,10);setRangeValue(ui.blackStrengthRange,1);setRangeValue(ui.dotGrowthRange,0);}
-  if(!silent) invalidatePhotoResult("تم تطبيق إعداد بورتريه المحفظة.");
-}
-function applySimpleEyeStyle(mode="balanced",silent=false){
-  setSelectValueSafe(ui.eyeStyleSelect,"wallet");
-  setSelectValueSafe(ui.eyeDensitySelect,"light");
-  if(mode==="soft"){setRangeValue(ui.eyeDetailRange,7);setRangeValue(ui.eyeFadeRange,9);setRangeValue(ui.eyeNoiseRange,8);}
-  else if(mode==="detailed"){setRangeValue(ui.eyeDetailRange,9);setRangeValue(ui.eyeFadeRange,8);setRangeValue(ui.eyeNoiseRange,7);}
-  else {setRangeValue(ui.eyeDetailRange,8);setRangeValue(ui.eyeFadeRange,9);setRangeValue(ui.eyeNoiseRange,8);}
-  if(!silent) invalidateEyeResult("تم تطبيق إعداد عين المحفظة.");
-}
-function simplifyWorkspace(){
-  document.querySelector('.mode-card.calibration-mode')?.setAttribute('hidden','hidden');
-  ui.calibrationWorkspace && (ui.calibrationWorkspace.hidden=true);
-}
 ui.fileInput.addEventListener("change",e=>loadFile(e.target.files[0]));ui.dropZone.addEventListener("dragover",e=>{e.preventDefault();ui.dropZone.classList.add("dragging")});ui.dropZone.addEventListener("dragleave",()=>ui.dropZone.classList.remove("dragging"));ui.dropZone.addEventListener("drop",e=>{e.preventDefault();ui.dropZone.classList.remove("dragging");loadFile(e.dataTransfer.files[0])});ui.prepareBtn.addEventListener("click",autoPrepare);ui.eyeBtn.addEventListener("click",prepareEyes);ui.applyMaskBtn.addEventListener("click",applyManual);ui.resetMaskBtn.addEventListener("click",()=>{if(state.mask){state.mask.fill(1);renderMask();showToast("تمت إعادة الماسك؛ امسح الخلفية بالفرشاة.")}});ui.invertBtn.addEventListener("click",()=>{if(state.binary){state.inverted=!state.inverted;renderFinal();showToast(state.inverted?"تم عكس الأبيض والأسود.":"تم إلغاء العكس.")}});ui.bmpBtn.addEventListener("click",exportBMP);ui.cutoutBtn.addEventListener("click",exportCutoutPNG);ui.pngBtn.addEventListener("click",exportPNG);ui.txtBtn.addEventListener("click",exportSettingsTXT);ui.testCardBtn.addEventListener("click",exportLeatherTest);ui.svgBtn.addEventListener("click",exportSVG);ui.pdfBtn.addEventListener("click",exportPDF);ui.eyePngBtn.addEventListener("click",exportEyePNG);ui.eyeSvgBtn.addEventListener("click",exportEyeSVG);ui.intervalExportBtn.addEventListener("click",exportIntervalTest);ui.calibrationExportBtn.addEventListener("click",()=>exportCalibrationCard(clamp(+ui.calibrationDpi.value||318,150,800)));ui.calibrationPhotoInput.addEventListener("change",e=>loadCalibrationPhoto(e.target.files[0]));ui.calibrationDropZone.addEventListener("dragover",e=>{e.preventDefault();ui.calibrationDropZone.classList.add("dragging")});ui.calibrationDropZone.addEventListener("dragleave",()=>ui.calibrationDropZone.classList.remove("dragging"));ui.calibrationDropZone.addEventListener("drop",e=>{e.preventDefault();ui.calibrationDropZone.classList.remove("dragging");loadCalibrationPhoto(e.dataTransfer.files[0])});ui.saveProfileBtn.addEventListener("click",saveCalibrationProfile);ui.measuredPitch.addEventListener("change",syncPitchDpi);
 function selectMode(mode){
   ui.modeHome.hidden=!!mode;ui.photoWorkspace.hidden=mode!=="photo";ui.eyeWorkspace.hidden=mode!=="eye";ui.calibrationWorkspace.hidden=mode!=="calibration";document.body.dataset.mode=mode||"home";window.scrollTo({top:0,behavior:"smooth"});if(mode==="photo"&&!state.source)setTimeout(()=>ui.fileInput.click(),120);if(mode==="eye"&&!state.eyeSource)setTimeout(()=>ui.eyeFileInput.click(),120);
@@ -971,15 +894,10 @@ ui.profileSelect?.addEventListener("change",applySelectedProfile);ui.leatherColo
 for(const el of [ui.dpiSelect,ui.targetWidth,ui.targetHeight,ui.lockRatio])for(const event of ["change","input"])el?.addEventListener(event,()=>{invalidatePhotoResult();updateTargetValidation();updateEzcadPanel()});
 for(const el of [ui.cleanupRange,ui.edgeSmoothRange,ui.lightBalanceRange,ui.faceDetailRange,ui.microDetailRange,ui.lineStrengthRange,ui.hatchStrengthRange,ui.charcoalGuardRange,ui.blackStrengthRange,ui.dotGrowthRange])el?.addEventListener("input",()=>invalidatePhotoResult());ui.algorithmSelect?.addEventListener("change",()=>invalidatePhotoResult("تم تغيير شكل الحفر. اضغط تجهيز لتطبيق المحرك الجديد."));
 for(const el of [ui.eyeStyleSelect,ui.eyeDensitySelect,ui.eyeDetailRange,ui.eyeFadeRange,ui.eyeNoiseRange,ui.eyeWidthMm,ui.eyeDpiSelect])for(const event of ["change","input"])el?.addEventListener(event,()=>{invalidateEyeResult();updateEyeInputUI()});
-ui.simplePhotoStyle?.addEventListener("change",()=>applySimplePhotoStyle(ui.simplePhotoStyle.value));
-ui.simpleEyeStyle?.addEventListener("change",()=>applySimpleEyeStyle(ui.simpleEyeStyle.value));
 ui.updateBtn?.addEventListener("click",checkForUpdates);
 ui.closeUpdateBtn?.addEventListener("click",closeUpdatePanel);
 ui.updatePanel?.addEventListener("click",e=>{if(e.target===ui.updatePanel)closeUpdatePanel()});
 if(ui.versionLabel)ui.versionLabel.textContent=`V${APP_VERSION}`;refreshProfiles();syncPitchDpi();
-simplifyWorkspace();
-applySimplePhotoStyle("balanced",true);
-applySimpleEyeStyle("balanced",true);
 updateEyeInputUI();
 updateEzcadPanel();
 modelStatus("idle","AI يُحمّل مجانًا عند أول استخدام");
